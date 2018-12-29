@@ -20,7 +20,6 @@ class Parser:
         self.header_pattern = r''
         self.header_names = []
         self.column_indexes = []
-        self._keys()
 
     def _space_level(self, line):
         return len(line) - len(line.lstrip(' '))
