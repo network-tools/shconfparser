@@ -8,7 +8,7 @@ class Reader:
 
     def _isfile(self):
         if path.exists(self.path):
-            return os.path.isfile(self.path)
+            return path.isfile(self.path)
 
     def read(self):
         if self._isfile():
