@@ -13,7 +13,7 @@ setup(
 	description='It's a Network configuration parser, which translates the show outputs',
 	long_description = long_description,
 	long_description_content_type = 'text/markdown',
-	url = 'https://example.com',
+	url = 'https://github.com/kirankotari/shconfparser',
 	author = 'Kiran Kumar Kotari',
 	author_email='kotarikirankumar@gmail.com',
 	classifiers = [ 
