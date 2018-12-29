@@ -52,8 +52,11 @@ class ShowSplit:
     def split(self, lines, pattern=None):
         key = None
         pattern = r'.*#sh.*' if pattern is None else pattern
+        if lines is None:
+            return None
+
         for line in lines:
-            result = re.search(pattern, each_line)
+            result = re.search(pattern, line)
             if result:
                 key = self._find_command(result, self.key_dictionary)
                 if key is not None:
