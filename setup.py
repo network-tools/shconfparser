@@ -31,5 +31,5 @@ setup(
 		'Programming Language :: Python :: 3.7',
 		],
 	keywords = 'network conf parser translator cisco show output parser',
-	packages = find_packages(exclude=['tests']),
+	packages = find_packages(exclude=['tests', 'data']),
 )
