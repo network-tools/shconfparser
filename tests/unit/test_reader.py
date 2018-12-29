@@ -1,4 +1,5 @@
 import unittest
+
 from os import path
 from shconfparser.reader import Reader
 

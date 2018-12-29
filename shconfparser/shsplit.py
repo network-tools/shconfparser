@@ -1,4 +1,4 @@
-import re
+import re, logging
 from collections import OrderedDict
 
 
@@ -12,7 +12,7 @@ class ShowSplit:
                     ])
              ),
             (' ip ', OrderedDict([
-                ('int', 'ip interface brief'),
+                ('int', 'ip_interface_brief'),
                 ('route', 'ip_route'),
                 ('arp', 'ip_arp'),
                 ('pro', 'ip_protocols'),
@@ -47,7 +47,7 @@ class ShowSplit:
         for key, value in key_dict.items():
             if key in result.group(0):
                 return self._find_command(result, value) if type(value) == OrderedDict else value
-        print('No key found for: {}'.format(result.group(0)))
+        logging.error('No key found for: {}'.format(result.group(0)))
 
     def split(self, lines, pattern=None):
         key = None
@@ -62,7 +62,7 @@ class ShowSplit:
                 if key is not None:
                     self.shcmd_dict[key] = []
                 else:
-                    print('Debug: {}'.format(line))
+                    logging.error('Debug: {}'.format(line))
 
             if key is not None:
                 self.shcmd_dict[key].append(line)

@@ -1,5 +1,6 @@
 import unittest
 import collections
+
 from os import path
 from shconfparser.reader import Reader
 from shconfparser.shsplit import ShowSplit
@@ -22,3 +23,11 @@ class TestShowSplit(unittest.TestCase):
         data = obj.split(r.data)
         assert data is None
 
+    def test_command_not_found(self):
+        lst = ['abcd#sh testing', 'testing']
+        obj = ShowSplit()
+        data = obj.split(lst)
+        assert data == {}
+        # TODO: need assert log messages
+        # assert 'No key found' in 
+        

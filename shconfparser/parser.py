@@ -1,6 +1,6 @@
 #!/usr/bin/python
 
-import re, os
+import re, os, logging
 from collections import OrderedDict
 
 __author__ = "Kiran Kumar Kotari"
@@ -51,7 +51,7 @@ class Parser:
         for i, line in enumerate(lines):
             result = pattern.match(line)
             if result: return i
-        return 0
+        return -1
 
     def _fetch_column_position(self, header):
         position = []
@@ -65,7 +65,7 @@ class Parser:
 
     def _fetch_table_row(self, line, data, table):
         if len(line) < self.column_indexes[-1]:
-            data[self.header_name[0]] = line.strip()
+            data[self.header_names[0]] = line.strip()
             return data
 
         for i, column_index in enumerate(self.column_indexes):
@@ -109,6 +109,9 @@ class Parser:
         self.header_names = header_names
         self.header_pattern = ' +'.join(header_names)
         header_index = self._fetch_header(lines)
+        if header_index == -1:
+            logging.error("Couldn't able to find header. validate: {}".format(header_names))
+            return None
         self.column_indexes = self._fetch_column_position(lines[header_index])
         self.table_lst = self._fetch_table_data(lines, header_index)
         return self.table_lst
