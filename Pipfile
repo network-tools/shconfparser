@@ -8,6 +8,8 @@ verify_ssl = true
 [packages]
 pytest = "*"
 pytest-cov = "*"
+tox = "*"
+tox-pyenv = "*"
 
 [requires]
 python_version = "3.7"
