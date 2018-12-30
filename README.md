@@ -54,9 +54,11 @@ If you're Interested in the source, you can always pull from the github repo:
 
 ## FAQ
 
-Question: ...
+ - Question: I want to use shconfparser with Python3, is that safe? <br />
+ Answer: As long as you're using python 3.3 or higher, it's safe. I tested every release against python 3.1+, however python 3.1 and 3.2 not running in continuous integration test. <br /><br />
+ - Question: I want to use shconfparser with Python2, is that safe? <br />
+ Answer: As long as you're using python 2.7 or higher, it's safe. I tested against python 2.7.
 
-Answer: ...
 
 ## Other Resources
 - [Python3 documentation](https://docs.python.org/3/) is a good way to learn python
