@@ -47,6 +47,19 @@ ip admission max-nodata-conns 3
 ip tcp synwait-time 5
 ! 
 !
+l2vpn
+ bridge group a
+  bridge-domain b
+   interface FastEthernet 0/0
+    static-mac-address test-abc
+   !
+  !
+  bridge-domain c
+   interface FastEthernet 0/1
+    static-mac-address test-xyz
+   !
+  !
+ !
 !
 !
 !
