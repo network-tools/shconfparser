@@ -1,4 +1,4 @@
-import unittest
+import pytest
 import collections
 
 from os import path
@@ -6,7 +6,7 @@ from shconfparser.reader import Reader
 from shconfparser.shsplit import ShowSplit
 
 
-class TestShowSplit(unittest.TestCase):
+class TestShowSplit:
 
     def test_split_data(self):
         file_path = path.abspath('data/shcommands.txt')
