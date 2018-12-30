@@ -2,6 +2,8 @@
 
 import re, os, logging
 from collections import OrderedDict
+from .shsplit import ShowSplit
+from .reader import Reader
 
 __author__ = "Kiran Kumar Kotari"
 __date__ = "$Date: 2015-12-28 19:45:47 +0530 (Mon, 28 Dec 2015) $"
@@ -115,3 +117,12 @@ class Parser:
         self.column_indexes = self._fetch_column_position(lines[header_index])
         self.table_lst = self._fetch_table_data(lines, header_index)
         return self.table_lst
+
+    def split(self, lines, pattern=None):
+        self.s = ShowSplit()
+        return self.s.split(lines, pattern)
+
+    def read(self, path):
+        self.r = Reader(path)
+        return self.r.data
+
