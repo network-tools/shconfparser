@@ -17,7 +17,7 @@ setup(
 	author = 'Kiran Kumar Kotari',
 	author_email='kotarikirankumar@gmail.com',
 	classifiers = [ 
-		'Development Status :: 3 - Alpha',
+		'Development Status :: 4 - Beta',
 		'Intended Audience :: Developers',
 		'Topic :: Software Development :: Build Tools',
 		'License :: OSI Approved :: MIT License', 
