@@ -37,6 +37,17 @@ Translating tree structure
 
 ```python
 >>> from shconfparser.parser import Parser
+>>> from os import path
+>>> file_path = path.abspath('data/shcommands.txt')
+>>> p = Parser()
+>>> data = p.read(file_path) # read file content
+>>> data = p.split(data) # split each show commands and it's data
+>>> data['running'] = p.parse_tree(data['running']) # translating show running data to tree format
+>>> p.dump(data['running']) # running data in tree format
+```
+
+```json
+{"R1#sh run": "None", "Building configuration...": "None", "Current configuration : 891 bytes": "None", "version 12.4": "None", "service timestamps debug datetime msec": "None", "service timestamps log datetime msec": "None", "no service password-encryption": "None", "hostname R1": "None", "boot-start-marker": "None", "boot-end-marker": "None", "no aaa new-model": "None", "memory-size iomem 5": "None", "no ip icmp rate-limit unreachable": "None", "ip cef": "None", "no ip domain lookup": "None", "ip auth-proxy max-nodata-conns 3": "None", "ip admission max-nodata-conns 3": "None", "ip tcp synwait-time 5": "None", "l2vpn": {"bridge group a": {"bridge-domain b": {"interface FastEthernet 0/0": {"static-mac-address test-abc": "None"}}, "bridge-domain c": {"interface FastEthernet 0/1": {"static-mac-address test-xyz": "None"}}}}, "interface FastEthernet0/0": {"ip address 1.1.1.1 255.255.255.0": "None", "duplex auto": "None", "speed auto": "None"}, "interface FastEthernet0/1": {"no ip address": "None", "shutdown": "None", "duplex auto": "None", "speed auto": "None"}, "ip forward-protocol nd": "None", "no ip http server": "None", "no ip http secure-server": "None", "no cdp log mismatch duplex": "None", "control-plane": "None", "line con 0": {"exec-timeout 0 0": "None", "privilege level 15": "None", "logging synchronous": "None"}, "line aux 0": {"exec-timeout 0 0": "None", "privilege level 15": "None", "logging synchronous": "None"}, "line vty 0 4": {"login": "None"}}
 ```
 
 Translating table structure
