@@ -15,3 +15,7 @@ install:
 
 script:
   - "PYTHONPATH=. pytest -v -s --cov=shconfparser tests"
+
+after_success:
+  - coveralls
+

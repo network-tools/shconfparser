@@ -160,3 +160,8 @@ INFO:root:Logging Time : 2018-12-30 20:41:33.773602
 ERROR:root:Couldn't able to find header. validate: [' Device ID', 'Local Intrfce', 'Holdtme', 'Capability', 'Platform', 'Port ID']
 ERROR:root:No key found for: abcd#sh testing
 ERROR:root:Debug: abcd#sh testing
+INFO:root:Logging Time : 2018-12-30 22:28:40.376735
+INFO:root:Logging Time : 2018-12-30 22:49:06.056745
+ERROR:root:Couldn't able to find header. validate: [' Device ID', 'Local Intrfce', 'Holdtme', 'Capability', 'Platform', 'Port ID']
+ERROR:root:No key found for: abcd#sh testing
+ERROR:root:Debug: abcd#sh testing

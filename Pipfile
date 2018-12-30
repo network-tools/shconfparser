@@ -12,6 +12,7 @@ tox = "*"
 tox-pyenv = "*"
 twine = "*"
 coveralls = "*"
+pyyaml = "*"
 
 [requires]
 python_version = "3.7"
