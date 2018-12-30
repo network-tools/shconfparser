@@ -64,3 +64,8 @@ class TestParser:
         result = setup.parse_table(data['cdp_neighbors'], header)
         assert result == None
         # TODO: need to check log message
+
+    def test_dump(self, setup):
+        data = setup.s.shcmd_dict
+        assert type(setup.dump(data)) is str
+

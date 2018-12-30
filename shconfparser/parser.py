@@ -1,19 +1,10 @@
 #!/usr/bin/python
 
-import re, os, logging
+import re, os, logging, json
 from collections import OrderedDict
 from .shsplit import ShowSplit
 from .reader import Reader
 
-__author__ = "Kiran Kumar Kotari"
-__date__ = "$Date: 2015-12-28 19:45:47 +0530 (Mon, 28 Dec 2015) $"
-__copyright__ = "Copyright 2015-18, MIT"
-__credits__ = ["Kiran Kumar Kotari"]
-__license__ = "MIT"
-__version__ = "1.0.0"
-__maintainer__ = "Kiran Kumar Kotari"
-__email__ = "kotarikirankumar@gmail.com"
-__status__ = "3 - Alpha"
 
 class Parser:
     def __init__(self):
@@ -125,4 +116,7 @@ class Parser:
     def read(self, path):
         self.r = Reader(path)
         return self.r.data
+
+    def dump(self, data):
+        return json.dumps(data, indent=4)
 
