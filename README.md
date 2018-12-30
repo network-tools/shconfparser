@@ -27,13 +27,19 @@ shconfparser is a vendor independent library where you can parse the following f
 - Table structure *`i.e. show ip interface`*
 - Data *`i.e. show version`*
 
-[//]: # (TODO: need to add sh run image)
-[//]: # (TODO: need to add sh cdp neig image)
-[//]: # (TODO: need to add asserts folder)
+Tree Structure
+
+![show run to tree structure](https://github.com/kirankotari/shconfparser/asserts/img/sh_run.png)
+
+Table Structure
+
+![show cdp neighbour to table structure](https://github.com/kirankotari/shconfparser/asserts/img/sh_cdp_neighbour.png)
 
 ## Docs
 
-Translating tree structure
+How to use shconfparser?
+
+- For Tree structure
 
 ```python
 >>> from shconfparser.parser import Parser
@@ -112,7 +118,7 @@ Translating tree structure
 }
 ```
 
-Translating table structure
+- For Table structure
 
 ```python
 >>> header_names = ['Device ID', 'Local Intrfce', 'Holdtme', 'Capability', 'Platform', 'Port ID']
@@ -133,7 +139,7 @@ Translating table structure
 ]
 ```
 
-Translating data
+- For Data
 
 ```python
 >>> data['version'] = p.parse_data(data['version'])
