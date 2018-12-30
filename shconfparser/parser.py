@@ -117,6 +117,6 @@ class Parser:
         self.r = Reader(path)
         return self.r.data
 
-    def dump(self, data):
-        return json.dumps(data, indent=4)
+    def dump(self, data, indent=None):
+        return json.dumps(data, indent=indent)
 
