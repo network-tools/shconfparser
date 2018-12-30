@@ -1,5 +1,9 @@
 # Show Configuration Parser (shconfparser)
 
+[![Build Status](https://travis-ci.org/kirankotari/shconfparser.svg?branch=master)](https://travis-ci.org/kirankotari/shconfparser)
+[![GitHub issues open](https://img.shields.io/github/issues/kirankotari/shconfparser.svg?maxAge=2592000)](https://github.com/kirankotari/shconfparser/issues)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+
 - [Introduction What is shconfparser](#introduction-what-is-shconfparser)
 - [Docs How to use](#docs-how-to-use)
 - [Pre-requisites](#pre-requisites)
@@ -54,15 +58,17 @@ Question: ...
 Answer: ...
 
 ## Other Resources
-...
-...
+- [Python3 documentation](https://docs.python.org/3/) is a good way to learn python
+- Python [GeeksforGeeks](https://www.geeksforgeeks.org/python-programming-language/)
+- [Ordered Dictionary](https://docs.python.org/2/library/collections.html#collections.OrderedDict)
+- [JSON](http://json.org/)
 
 ## Bug Tracker and Support
 
- - Please report any suggestions, bug reports, or annoyances with shconfparser through the github bug tracker. If you're having problems with general python issues, consider searching for a solution on Stack Overflow. 
- - If you can't find a solution for your problem or need more help, you can ask a question.
- - You can also ask on the Stack Exchange Network Engineering site.
- - Link to github issue tracker ... ...
+ - Please report any suggestions, bug reports, or annoyances with shconfparser through the [Github bug tracker](https://github.com/kirankotari/shconfparser/issues). If you're having problems with general python issues, consider searching for a solution on [Stack Overflow](https://stackoverflow.com/search?q=). 
+ - If you can't find a solution for your problem or need more help, you can [ask a question](https://stackoverflow.com/questions/ask).
+ - You can also ask on the [Stack Exchange Network Engineering](https://networkengineering.stackexchange.com/) site.
+
 
 ## Unit Tests
 

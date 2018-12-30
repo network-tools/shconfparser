@@ -11,6 +11,7 @@ pytest-cov = "*"
 tox = "*"
 tox-pyenv = "*"
 twine = "*"
+coveralls = "*"
 
 [requires]
 python_version = "3.7"
