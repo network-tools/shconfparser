@@ -3,6 +3,7 @@
 [![Build Status](https://travis-ci.org/kirankotari/shconfparser.svg?branch=master)](https://travis-ci.org/kirankotari/shconfparser)
 [![GitHub issues open](https://img.shields.io/github/issues/kirankotari/shconfparser.svg?maxAge=2592000)](https://github.com/kirankotari/shconfparser/issues)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Coverage Status](https://coveralls.io/repos/github/kirankotari/shconfparser/badge.svg?branch=master)](https://coveralls.io/github/kirankotari/shconfparser?branch=master)
 
 - [Introduction What is shconfparser](#introduction-what-is-shconfparser)
 - [Docs How to use](#docs-how-to-use)
