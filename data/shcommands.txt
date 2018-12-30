@@ -48,15 +48,15 @@ ip tcp synwait-time 5
 ! 
 !
 l2vpn
- bridge group a
-  bridge-domain b
+ bridge group test-group
+  bridge-domain test-domain1
    interface FastEthernet 0/0
-    static-mac-address test-abc
+    static-mac-address AB:CD:ED:01
    !
   !
-  bridge-domain c
+  bridge-domain test-domain2
    interface FastEthernet 0/1
-    static-mac-address test-xyz
+    static-mac-address AC:ED:12:34
    !
   !
  !

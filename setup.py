@@ -9,7 +9,7 @@ with open(path.join(here, 'README.md'), encoding='utf-8') as f:
 
 setup(
 	name='shconfparser',
-	version='1.1.0',
+	version='1.1.1',
 	description="It's a Network configuration parser, which translates the show outputs",
 	long_description = long_description,
 	long_description_content_type = 'text/markdown',
@@ -31,5 +31,5 @@ setup(
 		'Programming Language :: Python :: 3.7',
 		],
 	keywords = 'network conf parser translator cisco show output parser',
-	packages = find_packages(exclude=['tests', 'data']),
+	packages = find_packages(exclude=['tests', 'data', 'asserts']),
 )

@@ -43,23 +43,136 @@ Translating tree structure
 >>> data = p.read(file_path) # read file content
 >>> data = p.split(data) # split each show commands and it's data
 >>> data['running'] = p.parse_tree(data['running']) # translating show running data to tree format
->>> p.dump(data['running']) # running data in tree format
+>>> p.dump(data['running'], indent=4) # running data in tree format
 ```
 
 ```json
-{"R1#sh run": "None", "Building configuration...": "None", "Current configuration : 891 bytes": "None", "version 12.4": "None", "service timestamps debug datetime msec": "None", "service timestamps log datetime msec": "None", "no service password-encryption": "None", "hostname R1": "None", "boot-start-marker": "None", "boot-end-marker": "None", "no aaa new-model": "None", "memory-size iomem 5": "None", "no ip icmp rate-limit unreachable": "None", "ip cef": "None", "no ip domain lookup": "None", "ip auth-proxy max-nodata-conns 3": "None", "ip admission max-nodata-conns 3": "None", "ip tcp synwait-time 5": "None", "l2vpn": {"bridge group a": {"bridge-domain b": {"interface FastEthernet 0/0": {"static-mac-address test-abc": "None"}}, "bridge-domain c": {"interface FastEthernet 0/1": {"static-mac-address test-xyz": "None"}}}}, "interface FastEthernet0/0": {"ip address 1.1.1.1 255.255.255.0": "None", "duplex auto": "None", "speed auto": "None"}, "interface FastEthernet0/1": {"no ip address": "None", "shutdown": "None", "duplex auto": "None", "speed auto": "None"}, "ip forward-protocol nd": "None", "no ip http server": "None", "no ip http secure-server": "None", "no cdp log mismatch duplex": "None", "control-plane": "None", "line con 0": {"exec-timeout 0 0": "None", "privilege level 15": "None", "logging synchronous": "None"}, "line aux 0": {"exec-timeout 0 0": "None", "privilege level 15": "None", "logging synchronous": "None"}, "line vty 0 4": {"login": "None"}}
+{
+    "R1#sh run": "None",
+    "Building configuration...": "None",
+    "Current configuration : 891 bytes": "None",
+    "version 12.4": "None",
+    "service timestamps debug datetime msec": "None",
+    "service timestamps log datetime msec": "None",
+    "no service password-encryption": "None",
+    "hostname R1": "None",
+    "boot-start-marker": "None",
+    "boot-end-marker": "None",
+    "no aaa new-model": "None",
+    "memory-size iomem 5": "None",
+    "no ip icmp rate-limit unreachable": "None",
+    "ip cef": "None",
+    "no ip domain lookup": "None",
+    "ip auth-proxy max-nodata-conns 3": "None",
+    "ip admission max-nodata-conns 3": "None",
+    "ip tcp synwait-time 5": "None",
+    "l2vpn": {
+        "bridge group test-group": {
+            "bridge-domain test-domain1": {
+                "interface FastEthernet 0/0": {
+                    "static-mac-address AB:CD:ED:01": "None"
+                }
+            },
+            "bridge-domain test-domain2": {
+                "interface FastEthernet 0/1": {
+                    "static-mac-address AC:ED:12:34": "None"
+                }
+            }
+        }
+    },
+    "interface FastEthernet0/0": {
+        "ip address 1.1.1.1 255.255.255.0": "None",
+        "duplex auto": "None",
+        "speed auto": "None"
+    },
+    "interface FastEthernet0/1": {
+        "no ip address": "None",
+        "shutdown": "None",
+        "duplex auto": "None",
+        "speed auto": "None"
+    },
+    "ip forward-protocol nd": "None",
+    "no ip http server": "None",
+    "no ip http secure-server": "None",
+    "no cdp log mismatch duplex": "None",
+    "control-plane": "None",
+    "line con 0": {
+        "exec-timeout 0 0": "None",
+        "privilege level 15": "None",
+        "logging synchronous": "None"
+    },
+    "line aux 0": {
+        "exec-timeout 0 0": "None",
+        "privilege level 15": "None",
+        "logging synchronous": "None"
+    },
+    "line vty 0 4": {
+        "login": "None"
+    }
+}
 ```
 
 Translating table structure
 
 ```python
->>>  
+>>> header_names = ['Device ID', 'Local Intrfce', 'Holdtme', 'Capability', 'Platform', 'Port ID']
+>>> data['cdp_neighbors'] = p.parse_table(data['cdp_neighbors'], header_names=header_names)
+>>> p.dump(data['cdp_neighbors'], indent=4)
+```
+
+```json
+[
+    {
+        "Device ID": "R2",
+        "Local Intrfce": "Fas 0/0",
+        "Holdtme": "154",
+        "Capability": "R S I",
+        "Platform": "3725",
+        "Port ID": "Fas 0/0"
+    }
+]
 ```
 
 Translating data
 
 ```python
->>>  
+>>> data['version'] = p.parse_data(data['version'])
+>>> p.dump(data['version'], indent=4)
+```
+
+```json
+{
+    "R1#sh ver": "None",
+    "Cisco IOS Software, 3700 Software (C3725-ADVENTERPRISEK9-M), Version 12.4(25d), RELEASE SOFTWARE (fc1)": "None",
+    "Technical Support: http://www.cisco.com/techsupport": "None",
+    "Copyright (c) 1986-2010 by Cisco Systems, Inc.": "None",
+    "Compiled Wed 18-Aug-10 07:55 by prod_rel_team": "None",
+    "": "None",
+    "ROM: ROMMON Emulation Microcode": "None",
+    "ROM: 3700 Software (C3725-ADVENTERPRISEK9-M), Version 12.4(25d), RELEASE SOFTWARE (fc1)": "None",
+    "R1 uptime is 10 minutes": "None",
+    "System returned to ROM by unknown reload cause - suspect boot_data[BOOT_COUNT] 0x0, BOOT_COUNT 0, BOOTDATA 19": "None",
+    "System image file is \"tftp://255.255.255.255/unknown\"": "None",
+    "This product contains cryptographic features and is subject to United": "None",
+    "States and local country laws governing import, export, transfer and": "None",
+    "use. Delivery of Cisco cryptographic products does not imply": "None",
+    "third-party authority to import, export, distribute or use encryption.": "None",
+    "Importers, exporters, distributors and users are responsible for": "None",
+    "compliance with U.S. and local country laws. By using this product you": "None",
+    "agree to comply with applicable laws and regulations. If you are unable": "None",
+    "to comply with U.S. and local laws, return this product immediately.": "None",
+    "A summary of U.S. laws governing Cisco cryptographic products may be found at:": "None",
+    "http://www.cisco.com/wwl/export/crypto/tool/stqrg.html": "None",
+    "If you require further assistance please contact us by sending email to": "None",
+    "export@cisco.com.": "None",
+    "Cisco 3725 (R7000) processor (revision 0.1) with 124928K/6144K bytes of memory.": "None",
+    "Processor board ID FTX0945W0MY": "None",
+    "R7000 CPU at 240MHz, Implementation 39, Rev 2.1, 256KB L2, 512KB L3 Cache": "None",
+    "2 FastEthernet interfaces": "None",
+    "DRAM configuration is 64 bits wide with parity enabled.": "None",
+    "55K bytes of NVRAM.": "None",
+    "Configuration register is 0x2102": "None"
+}
 ```
 
 ## Pre-requisites
