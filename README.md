@@ -5,8 +5,8 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Coverage Status](https://coveralls.io/repos/github/kirankotari/shconfparser/badge.svg?branch=master)](https://coveralls.io/github/kirankotari/shconfparser?branch=master)
 
-- [Introduction What is shconfparser](#introduction-what-is-shconfparser)
-- [Docs How to use](#docs-how-to-use)
+- [Introduction](#introduction)
+- [Docs](#docs)
 - [Pre-requisites](#pre-requisites)
 - [Installation and Downloads](#installation-and-downloads)
 - [FAQ](#faq)
@@ -17,21 +17,21 @@
 - [Author and Thanks](#author-and-thanks)
 
 
-## Introduction What is shconfparser
+## Introduction
 
 Show configuration parser i.e. shconfparser is a Python library, whcih parser Network configurations. 
 This library examines the config and breaks it into a set of parent and clild relationships.
 
 shconfparser is a vendor independent library where you can parse the following formats:
- - tree structure *`i.e. show running`*
- - table structure *`i.e. show ip interface`*
- - data structure *`i.e. show version`*
+ - Tree structure *`i.e. show running`*
+ - Table structure *`i.e. show ip interface`*
+ - Data structure *`i.e. show version`*
 
 < image: sh run -> format > ... ...
 
 < image: sh ip interface -> format > ... ...
 
-## Docs How to use
+## Docs
 ....
 ....
 
