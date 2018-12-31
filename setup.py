@@ -9,7 +9,7 @@ with open(path.join(here, 'README.md'), encoding='utf-8') as f:
 
 setup(
 	name='shconfparser',
-	version='1.1.1',
+	version='1.1.5',
 	description="It's a Network configuration parser, which translates the show outputs",
 	long_description = long_description,
 	long_description_content_type = 'text/markdown',
