@@ -233,7 +233,7 @@ dict_values(['interface FastEthernet0/0', 'interface FastEthernet0/1'])
 ```python
 >>> header = ['Interface', 'IP-Address', 'OK?', 'Method', 'Status', 'Protocol']
 >>> data['ip_interface_brief'] = p.parse_table(data['ip_interface_brief'], header)
->>> pattern = 'interface FastEthernet.*'
+>>> pattern = 'FastEthernet.*'
 >>> header = 'Interface'
 >>> m = p.search.search_all_in_table(pattern, data['ip_interface_brief'], header)
 >>> m
