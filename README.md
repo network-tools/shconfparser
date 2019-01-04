@@ -29,11 +29,11 @@ shconfparser is a vendor independent library where you can parse the following f
 
 Tree Structure
 
-![show run to tree structure](https://github.com/kirankotari/shconfparser/blob/master/asserts/img/sh_run.png)
+![show run to tree structure](https://raw.githubusercontent.com/kirankotari/shconfparser/master/asserts/img/sh_run.png)
 
 Table Structure
 
-![show cdp neighbour to table structure](https://github.com/kirankotari/shconfparser/blob/master/asserts/img/sh_cdp_neighbour.png)
+![show cdp neighbour to table structure](https://raw.githubusercontent.com/kirankotari/shconfparser/master/asserts/img/sh_cdp_neighbor.png)
 
 ## Docs
 
