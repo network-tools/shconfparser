@@ -33,3 +33,4 @@ class Search:
         for each_row in data:
             if pattern.match(each_row[header_column]):
                 match.append(each_row)
+        return match if len(match) else None

@@ -82,6 +82,12 @@ class Parser:
             data = self._fetch_table_row(lines[i], data, table)
         return table
 
+    def _convert(self, lst):
+        lst1 = []
+        for each in lst:
+            lst1.append(re.escape(each))
+        return lst1
+
     def parse_tree(self, lines):
         data = list()
         for i, line in enumerate(lines):
@@ -102,7 +108,7 @@ class Parser:
     def parse_table(self, lines, header_names):
         self.table_lst = []
         self.header_names = header_names
-        self.header_pattern = ' +'.join(header_names)
+        self.header_pattern = ' +'.join(self._convert(header_names))
         header_index = self._fetch_header(lines)
         if header_index == -1:
             logging.error("Couldn't able to find header. validate: {}".format(header_names))
