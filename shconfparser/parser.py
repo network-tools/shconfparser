@@ -4,6 +4,7 @@ import re, os, logging, json
 from collections import OrderedDict
 from .shsplit import ShowSplit
 from .reader import Reader
+from .search import Search
 
 
 class Parser:
@@ -13,6 +14,7 @@ class Parser:
         self.header_pattern = r''
         self.header_names = []
         self.column_indexes = []
+        self.search = Search()
 
     def _space_level(self, line):
         return len(line) - len(line.lstrip(' '))
