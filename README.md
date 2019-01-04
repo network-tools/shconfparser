@@ -39,7 +39,7 @@ Table Structure
 
 How to use shconfparser?
 
-- For Tree structure
+- How to split show commands from a file
 
 ```python
 >>> from shconfparser.parser import Parser
@@ -48,6 +48,16 @@ How to use shconfparser?
 >>> p = Parser()
 >>> data = p.read(file_path) # read file content
 >>> data = p.split(data) # split each show commands and it's data
+>>> data.keys()
+```
+
+```python
+odict_keys(['running', 'version', 'cdp_neighbors', 'ip_interface_brief']) # keys
+```
+
+- How to convert `running config` to Tree structure
+
+```python
 >>> data['running'] = p.parse_tree(data['running']) # translating show running data to tree format
 >>> p.dump(data['running'], indent=4) # running data in tree format
 ```
@@ -118,7 +128,7 @@ How to use shconfparser?
 }
 ```
 
-- For Table structure
+- How to convert Table structure
 
 ```python
 >>> header_names = ['Device ID', 'Local Intrfce', 'Holdtme', 'Capability', 'Platform', 'Port ID']
@@ -139,7 +149,7 @@ How to use shconfparser?
 ]
 ```
 
-- For Data
+- How to convert data to Tree
 
 ```python
 >>> data['version'] = p.parse_data(data['version'])
@@ -179,6 +189,75 @@ How to use shconfparser?
     "55K bytes of NVRAM.": "None",
     "Configuration register is 0x2102": "None"
 }
+```
+
+- Search all occurrences in Tree
+
+```python
+>>> pattern = 'interface\s+FastEthernet.*'
+>>> m = p.search.search_all_in_tree(pattern, data['running'])
+>>> m.values()
+```
+
+```python
+dict_values(['interface FastEthernet0/0', 'interface FastEthernet0/1'])
+```
+
+- Search first occurrences in Tree
+
+```python
+>>> pattern = 'Cisco\s+IOS\s+Software.*'
+>>> m = p.search.search_in_tree(pattern, data['version'])
+>>> m.group(0)
+```
+
+```python
+'Cisco IOS Software, 3700 Software (C3725-ADVENTERPRISEK9-M), Version 12.4(25d), RELEASE SOFTWARE (fc1)'
+```
+
+- Search first occurrences in Table
+
+```python
+>>> pattern = 'R\d+'
+>>> header = 'Device ID'
+>>> m = p.search.search_in_table(pattern, data['cdp_neighbors'], header)
+>>> m
+```
+
+```python
+{'Device ID': 'R2', 'Local Intrfce': 'Fas 0/0', 'Holdtme': '154', 'Capability': 'R S I', 'Platform': '3725', 'Port ID': 'Fas 0/0'}
+```
+
+- Search all occurrences in Table
+
+```python
+>>> header = ['Interface', 'IP-Address', 'OK?', 'Method', 'Status', 'Protocol']
+>>> data['ip_interface_brief'] = p.parse_table(data['ip_interface_brief'], header)
+>>> pattern = 'interface FastEthernet.*'
+>>> header = 'Interface'
+>>> m = p.search.search_all_in_table(pattern, data['ip_interface_brief'], header)
+>>> m
+```
+
+```python
+[
+    {
+        "Interface":"FastEthernet0/0",
+        "IP-Address":"1.1.1.1",
+        "OK?":"YES",
+        "Method":"manual",
+        "Status":"up",
+        "Protocol":"up"
+    },
+    {
+        "Interface":"FastEthernet0/1",
+        "IP-Address":"unassigned",
+        "OK?":"YES",
+        "Method":"unset",
+        "Status":"administratively down",
+        "Protocol":"down"
+    }
+]
 ```
 
 ## Pre-requisites
