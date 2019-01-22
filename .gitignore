@@ -68,7 +68,7 @@ target/
 .ipynb_checkpoints
 
 # pyenv
-.python-version
+# .python-version
 
 # celery beat schedule file
 celerybeat-schedule
@@ -88,3 +88,6 @@ ENV/
 
 # Pycharm editor
 .idea/
+
+# Vim or Emac
+.tags
