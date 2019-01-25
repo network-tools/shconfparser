@@ -77,8 +77,10 @@ class Parser:
     def _fetch_table_data(self, lines, header_index):
         table, data = [], {}
         for i in range(header_index + 1, len(lines)):
-            if '#' in lines[i]:
+            if '#' in lines[i] or len(lines[i]) < 2:
                 break
+            if '---' in lines[i] or '===' in lines[i]:
+                continue
             data = self._fetch_table_row(lines[i], data, table)
         return table
 
