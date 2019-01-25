@@ -1,9 +1,9 @@
 # Show Configuration Parser (shconfparser)
 
-[![Build Status](https://travis-ci.org/kirankotari/shconfparser.svg?branch=master)](https://travis-ci.org/kirankotari/shconfparser)
-[![GitHub issues open](https://img.shields.io/github/issues/kirankotari/shconfparser.svg?maxAge=2592000)](https://github.com/kirankotari/shconfparser/issues)
+[![Build Status](https://travis-ci.org/network-tools/shconfparser.svg?branch=master)](https://travis-ci.org/network-tools/shconfparser)
+[![GitHub issues open](https://img.shields.io/github/issues/network-tools/shconfparser.svg?maxAge=2592000)](https://github.com/network-tools/shconfparser/issues)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Coverage Status](https://img.shields.io/coveralls/github/kirankotari/shconfparser/master.svg)](https://img.shields.io/coveralls/github/kirankotari/shconfparser/master.svg)
+[![Coverage Status](https://coveralls.io/repos/github/network-tools/shconfparser/badge.svg?branch=master)](https://coveralls.io/github/network-tools/shconfparser?branch=master)
 
 - [Introduction](#introduction)
 - [Docs](#docs)
@@ -276,7 +276,7 @@ Otherwise download it from PyPi, extract it and run the `setup.py` script
 
 If you're Interested in the source, you can always pull from the github repo:
 
-- From github `git clone https://github.com/kirankotari/shconfparser.git`
+- From github `git clone https://github.com/network-tools/shconfparser.git`
 
 ## FAQ
 
@@ -295,16 +295,16 @@ If you're Interested in the source, you can always pull from the github repo:
 
 ## Bug Tracker and Support
 
-- Please report any suggestions, bug reports, or annoyances with shconfparser through the [Github bug tracker](https://github.com/kirankotari/shconfparser/issues). If you're having problems with general python issues, consider searching for a solution on [Stack Overflow](https://stackoverflow.com/search?q=).
+- Please report any suggestions, bug reports, or annoyances with shconfparser through the [Github bug tracker](https://github.com/network-tools/shconfparser/issues). If you're having problems with general python issues, consider searching for a solution on [Stack Overflow](https://stackoverflow.com/search?q=).
 - If you can't find a solution for your problem or need more help, you can [ask a question](https://stackoverflow.com/questions/ask).
 - You can also ask on the [Stack Exchange Network Engineering](https://networkengineering.stackexchange.com/) site.
 
 ## Unit Tests
 
-- [Travis CI](https://travis-ci.org/kirankotari/shconfparser/builds) project tests shconfparser on Python versions `2.7` through `3.7`.
+- [Travis CI](https://travis-ci.org/network-tools/shconfparser/builds) project tests shconfparser on Python versions `2.7` through `3.7`.
 
 - The current build status is:  
- [![Build Status](https://travis-ci.org/kirankotari/shconfparser.svg?branch=master)](https://travis-ci.org/kirankotari/shconfparser)
+[![Build Status](https://travis-ci.org/network-tools/shconfparser.svg?branch=master)](https://travis-ci.org/network-tools/shconfparser)
 
 ## License and Copyright
 
