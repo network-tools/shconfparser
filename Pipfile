@@ -6,13 +6,13 @@ verify_ssl = true
 [dev-packages]
 
 [packages]
-pytest = "*"
-pytest-cov = "*"
+pytest = "==4.0.2"
+pytest-cov = "==2.6.0"
 tox = "*"
 tox-pyenv = "*"
 twine = "*"
-coveralls = "*"
-pyyaml = "*"
+coveralls = "==1.5.1"
+PyYAML = "*"
 
 [requires]
 python_version = "3.7"
