@@ -152,11 +152,13 @@ Capability Codes: R - Router, T - Trans Bridge, B - Source Route Bridge
                   S - Switch, H - Host, I - IGMP, r - Repeater
 
 Device ID        Local Intrfce     Holdtme    Capability  Platform  Port ID
+---------        -------------     -------    ----------  --------  -------
 R2               Fas 0/0            154        R S I      3725      Fas 0/0
 R1#
 R1#
 R1#sh ip int bri
 Interface                  IP-Address      OK? Method Status                Protocol
+========                   ==========      === ====== ======                =====
 FastEthernet0/0            1.1.1.1         YES manual up                    up      
 FastEthernet0/1            unassigned      YES unset  administratively down down    
 R1#
