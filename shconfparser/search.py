@@ -1,3 +1,4 @@
+from collections import OrderedDict
 import re
 
 
@@ -14,7 +15,7 @@ class Search:
     def search_all_in_tree(self, pattern, data=None):
         if data == None: return None
         pattern = re.compile(pattern)
-        match = {}
+        match = OrderedDict()
         for key in data.keys():
             if pattern.match(key):
                 match[pattern.match(key)] = key
