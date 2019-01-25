@@ -33,6 +33,14 @@ class ShowSplit:
                 ('switch', 'switch')
                 ])
              ),
+            (' dir', OrderedDict([
+                ('/all', 'dir_all')
+                 ])
+            ),
+            (' etherc', OrderedDict([
+                ('su', 'etherchannel_summary')
+                ])
+            ),
             (' run', 'running'),
             (' ver', 'version'),
             (' inv', 'inventory'),
