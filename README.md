@@ -4,7 +4,7 @@
 [![Build Status](https://travis-ci.org/network-tools/shconfparser.svg?branch=master)](https://travis-ci.org/network-tools/shconfparser)
 [![Coverage Status](https://coveralls.io/repos/github/network-tools/shconfparser/badge.svg?branch=master)](https://coveralls.io/github/network-tools/shconfparser?branch=master)
 [![Downloads](https://pepy.tech/badge/shconfparser)](https://pepy.tech/project/shconfparser)
-[![GitHub issues open](https://img.shields.io/github/issues/network-tools/shconfparser.svg?maxAge=2592000)](https://github.com/network-tools/shconfparser/issues)
+[![GitHub issues open](https://img.shields.io/github/issues/network-tools/shconfparser.svg?)](https://github.com/network-tools/shconfparser/issues)
 
 - [Introduction](#introduction)
 - [Docs](#docs)
@@ -304,13 +304,15 @@ If you're Interested in the source, you can always pull from the github repo:
 
 - [Travis CI](https://travis-ci.org/network-tools/shconfparser/builds) project tests shconfparser on Python versions `2.7` through `3.7`.
 
-- The current build status is:  
-[![Build Status](https://travis-ci.org/network-tools/shconfparser.svg?branch=master)](https://travis-ci.org/network-tools/shconfparser)
+- The current build status is:
+
+   [![Build Status](https://travis-ci.org/network-tools/shconfparser.svg?branch=master)](https://travis-ci.org/network-tools/shconfparser)
 
 ## License and Copyright
 
-- shconfparser is licensed [MIT](http://opensource.org/licenses/mit-license.php) *2016-2018*  
- [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+- shconfparser is licensed [MIT](http://opensource.org/licenses/mit-license.php) *2016-2018*
+
+   [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 ## Author and Thanks
 
