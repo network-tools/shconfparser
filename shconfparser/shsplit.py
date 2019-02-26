@@ -7,16 +7,16 @@ class ShowSplit:
         self.shcmd_dict = OrderedDict()
         self.key_dictionary = OrderedDict([
             (' cdp ', OrderedDict([
-                    ('det', 'cdp_neighbors_detail'),
-                    ('nei', 'cdp_neighbors')
-                    ])
+                ('det', 'cdp_neighbors_detail'),
+                ('nei', 'cdp_neighbors')
+            ])
              ),
             (' ip ', OrderedDict([
                 ('int', 'ip_interface_brief'),
                 ('route', 'ip_route'),
                 ('arp', 'ip_arp'),
                 ('pro', 'ip_protocols'),
-                ])
+            ])
              ),
             (' int', OrderedDict([
                 ('sum', 'interface_summary'),
@@ -24,31 +24,44 @@ class ShowSplit:
                 ('stat', 'interface_status'),
                 ('tran', 'interfaces_transceiver_properties'),
                 ('cap', 'interfaces_capabilities'),
+                ('vlan-interface brief', 'interfaces_vlan_brief'),
+                ('brief', 'interfaces_brief'),
                 ('int', 'interfaces'),
-                ])
+            ])
              ),
             (' switch', OrderedDict([
                 ('detail', 'switch_detail'),
                 ('service', 'switch_service_modules'),
                 ('switch', 'switch')
-                ])
+            ])
              ),
-            (' dir', OrderedDict([
-                ('/all', 'dir_all')
-                 ])
-            ),
-            (' etherc', OrderedDict([
-                ('su', 'etherchannel_summary')
-                ])
-            ),
+            (' stack all', 'stack_all'),
             (' run', 'running'),
             (' ver', 'version'),
+            (' lic', 'license'),
             (' inv', 'inventory'),
-            (' vlan', 'vlan'),
+            (' vlan', OrderedDict([
+                ('port all detail', 'vlan_port_all_detail'),
+                ('vlan', 'vlan')
+            ])),
             (' module', 'module'),
             (' mac add', 'mac_address_table'),
             (' power inline', 'power_inline'),
             (' flash', 'flash'),
+            (' port trunk', 'port_trunk'),
+            (' current-conf', 'current_config'),
+            (' stp root', 'stp_root'),
+            (' device', 'device'),
+            (' ssh server status', 'ssh_server_status'),
+            (' lldp', OrderedDict([
+                ('neighbor-information list', 'lldp_neighbor_list')
+            ])),
+            (' dir', OrderedDict([
+                ('/all', 'dir_all')
+            ])),
+            (' etherc', OrderedDict([
+                ('su', 'etherchannel_summary')
+            ]))
         ])
 
     def _find_command(self, result, key_dict):
@@ -64,14 +77,15 @@ class ShowSplit:
             return None
 
         for line in lines:
-            result = re.search(pattern, line)
+            line_lower = str(line).lower()
+            result = re.search(pattern, line_lower)
             if result:
                 key = self._find_command(result, self.key_dictionary)
                 if key is not None:
                     self.shcmd_dict[key] = []
                 else:
-                    logging.error('Debug: {}'.format(line))
+                    logging.error('Debug: {}'.format(line_lower))
 
             if key is not None:
-                self.shcmd_dict[key].append(line)
+                self.shcmd_dict[key].append(line.rstrip())
         return self.shcmd_dict

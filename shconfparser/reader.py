@@ -1,6 +1,7 @@
 from os import path
 from io import open
 
+
 class Reader:
     def __init__(self, path):
         self.path = path

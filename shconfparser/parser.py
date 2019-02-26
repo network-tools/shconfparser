@@ -23,7 +23,7 @@ class Parser:
         temp_dict = OrderedDict()
         for i, node in enumerate(tree):
             try:
-                next_node = tree[i+1]
+                next_node = tree[i + 1]
             except IndexError:
                 next_node = {'level': -1}
 
@@ -35,7 +35,7 @@ class Parser:
             if next_node['level'] == level:
                 temp_dict[node['key']] = 'None'
             elif next_node['level'] > level:
-                temp_dict[node['key']] = self._convert_to_dict(tree[i+1:], level=next_node['level'])
+                temp_dict[node['key']] = self._convert_to_dict(tree[i + 1:], level=next_node['level'])
             else:
                 temp_dict[node['key']] = 'None'
                 return temp_dict
@@ -65,29 +65,32 @@ class Parser:
 
         for i, column_index in enumerate(self.column_indexes):
             try:
-                start, end = column_index, self.column_indexes[i+1]
+                start, end = column_index, self.column_indexes[i + 1]
                 self._fetch_table_column(line, start, end, self.header_names[i], data)
             except IndexError:
                 continue
-        self._fetch_table_column(line, start=self.column_indexes[-1], end=-1, key=self.header_names[-1], data=data)
+        self._fetch_table_column(line, start=self.column_indexes[-1], end=len(line), key=self.header_names[-1], data=data)
         table.append(data)
         data = {}
         return data
 
-    def _fetch_table_data(self, lines, header_index):
+    def _fetch_table_data(self, lines, header_index, pattern):
         table, data = [], {}
         for i in range(header_index + 1, len(lines)):
-            if '#' in lines[i] or len(lines[i]) < 2:
+            if pattern in lines[i] or len(lines[i]) < 2:
                 break
             if '---' in lines[i] or '===' in lines[i]:
                 continue
             data = self._fetch_table_row(lines[i], data, table)
         return table
 
-    def _convert(self, lst):
+    def _convert(self, lst, re_escape):
         lst1 = []
         for each in lst:
-            lst1.append(re.escape(each))
+            if re_escape:
+                lst1.append(re.escape(each))
+            else:
+                lst1.append(each.replace(' ', "\s+"))
         return lst1
 
     def parse_tree(self, lines):
@@ -107,16 +110,17 @@ class Parser:
             self.data[line] = 'None'
         return self.data
 
-    def parse_table(self, lines, header_names):
+    def parse_table(self, lines, header_names, pattern='#', re_escape=True):
         self.table_lst = []
         self.header_names = header_names
-        self.header_pattern = ' +'.join(self._convert(header_names))
+        self.header_pattern = ' +'.join(self._convert(header_names, re_escape))
+        self.header_pattern = '\s*' + self.header_pattern
         header_index = self._fetch_header(lines)
         if header_index == -1:
-            logging.error("Couldn't able to find header. validate: {}".format(header_names))
+            logging.error("Couldn't able to find header. validate: {} {}".format(header_names, lines))
             return None
         self.column_indexes = self._fetch_column_position(lines[header_index])
-        self.table_lst = self._fetch_table_data(lines, header_index)
+        self.table_lst = self._fetch_table_data(lines, header_index, pattern)
         return self.table_lst
 
     def split(self, lines, pattern=None):
@@ -129,4 +133,3 @@ class Parser:
 
     def dump(self, data, indent=None):
         return json.dumps(data, indent=indent)
-
