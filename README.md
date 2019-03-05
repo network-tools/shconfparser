@@ -5,6 +5,7 @@
 [![Coverage Status](https://coveralls.io/repos/github/network-tools/shconfparser/badge.svg?branch=master)](https://coveralls.io/github/network-tools/shconfparser?branch=master)
 [![Downloads](https://pepy.tech/badge/shconfparser)](https://pepy.tech/project/shconfparser)
 [![GitHub issues open](https://img.shields.io/github/issues/network-tools/shconfparser.svg?)](https://github.com/network-tools/shconfparser/issues)
+[![Known Vulnerabilities](https://snyk.io/test/github/network-tools/shconfparser/badge.svg?targetFile=requirements.txt)](https://snyk.io/test/github/network-tools/shconfparser?targetFile=requirements.txt)
 
 - [Introduction](#introduction)
 - [Docs](#docs)
