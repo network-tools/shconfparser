@@ -106,7 +106,7 @@ class Parser:
     def parse_data(self, lines):
         self.data = OrderedDict()
         for line in lines:
-            line = line.rstrip()
+            line = str(line).rstrip()
             self.data[line] = 'None'
         return self.data
 
