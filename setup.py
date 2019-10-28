@@ -9,13 +9,13 @@ with open(path.join(here, 'README.md'), encoding='utf-8') as f:
 
 setup(
     name='shconfparser',
-    version='2.2.2',
+    version='2.2.3',
     description="It's a Network configuration parser, which translates the show outputs",
     long_description=long_description,
     long_description_content_type='text/markdown',
     url='https://github.com/network-tools/shconfparser',
     author='Kiran Kumar Kotari',
-    author_email='kotarikirankumar@gmail.com',
+    author_email='kirankotari@live.com',
     classifiers=[
         'Development Status :: 5 - Production/Stable',
         'Intended Audience :: Developers',
