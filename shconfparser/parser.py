@@ -1,6 +1,6 @@
 #!/usr/bin/python
 
-import re, os, logging, json
+import re, os, logging, json, sys
 from collections import OrderedDict
 from .shsplit import ShowSplit
 from .reader import Reader
@@ -8,13 +8,24 @@ from .search import Search
 
 
 class Parser:
-    def __init__(self):
+    name = 'shconfparser'
+    def __init__(self, log_level=logging.INFO, log_format=None):
         self.data = OrderedDict()
         self.table = []
         self.header_pattern = r''
         self.header_names = []
         self.column_indexes = []
+        self.format = log_format
+        self.logger = self.set_logger_level(log_level)
         self.search = Search()
+
+    def set_logger_level(self, log_level):
+        if self.format is None:
+            self.format = '[ %(levelname)s ] :: [ %(name)s ] :: %(message)s'
+        logging.basicConfig(stream=sys.stdout, level=log_level, format=self.format, datefmt=None)
+        logger = logging.getLogger(self.name)
+        logger.setLevel(log_level)
+        return logger
 
     def _space_level(self, line):
         return len(line) - len(line.lstrip(' '))
