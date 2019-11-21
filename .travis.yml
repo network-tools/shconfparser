@@ -16,7 +16,7 @@ matrix:
     - os: linux
       python: 2.7
       before_install:
-        - pip install -r requirements_dev.txt
+        - pip install -r requirements_dev27.txt
     - os: linux
       python: 3.5
       before_install:
