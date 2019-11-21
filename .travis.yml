@@ -9,8 +9,29 @@ python:
   - "3.5"
   - "3.6"
 
-install:
-  - pip install -r requirements_dev.txt
+matrix:
+  include:
+    - os: windows
+      language: sh
+      before_install:
+        - git clone https://github.com/pyenv-win/pyenv-win.git $HOME/.pyenv
+        - export PATH="$HOME/.pyenv/pyenv-win/bin:$HOME/.pyenv/pyenv-win/shims:$PATH"
+        - pyenv install -q 3.7.1
+        - pyenv rehash
+        - pyenv local 3.7.1
+        - python --version
+        - pip install -r requirements_dev.txt
+  include:
+    - os: linux
+      language: python
+      python:
+        - "2.7"
+        - "3.4"
+        - "3.5"
+        - "3.6"
+        - "3.7"
+      before_install:
+        - pip install -r requirements_dev.txt
 
 script:
   - "PYTHONPATH=. pytest -v -s --cov=shconfparser tests"
