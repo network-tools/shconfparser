@@ -13,6 +13,13 @@ matrix:
         - pyenv local 3.7.1
         - python --version
         - pip install -r requirements_dev.txt
+    - os: windows
+      language: sh
+      before_install:
+        - choco install python3 --params "/InstallDir:C:\\Python"
+        - export PATH="/c/Python:/c/Python/Scripts:$PATH"
+        - python --version
+        - python -m pip install -r requirements_dev.txt
     - os: linux
       python: 2.7
       before_install:
