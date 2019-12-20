@@ -28,7 +28,7 @@ class Parser:
         return logger
 
     def _space_level(self, line):
-        return len(line) - len(line.lstrip(' '))
+        return len(line) - len(line.lstrip())
 
     def _convert_to_dict(self, tree, level=0):
         temp_dict = OrderedDict()
