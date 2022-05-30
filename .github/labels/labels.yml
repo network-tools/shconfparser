@@ -25,7 +25,10 @@
   name: wontfix
   description: This will not be worked on
 
-# Labels specific to pyenv-win
+# Labels specific to shconfparser
+- color: 0366d6
+  name: sh/wip
+  description: Work in progress
 - color: 0366d6
   name: sh/docs
   description: Improvements or additions to documentation
