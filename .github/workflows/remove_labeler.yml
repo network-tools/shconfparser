@@ -4,6 +4,10 @@ on:
   pull_request:
     types: [closed]
 
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+
+
 jobs:
   remove_labels:
     runs-on: ubuntu-latest
