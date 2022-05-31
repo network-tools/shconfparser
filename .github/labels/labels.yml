@@ -38,11 +38,11 @@
 - color: 0366d6
   name: sh/code
   description: Bots, bots everywhere
-- color: sh/ci
-  name: area/vars
+- color: 0366d6
+  name: sh/ci
   description: Ansible variables used in role
-- color: sh/settings
-  name: area/tasks
+- color: 0366d6
+  name: sh/settings
   description: Logic behind ansible role
 - color: 0366d6
   name: sh/pip
