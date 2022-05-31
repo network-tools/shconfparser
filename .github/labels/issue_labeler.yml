@@ -1,0 +1,11 @@
+# Add/remove 'critical' label if issue contains the words 'urgent' or 'critical'
+critical:
+    - '(critical|urgent)'
+
+# Add/remove 'bug' label if issue contains the words 'bug'
+bug:
+    - '(bug)'
+
+# Add/remove 'feature' label if issue contains the words 'feature'
+feature:
+    - '(feature)'

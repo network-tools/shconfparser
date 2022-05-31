@@ -16,24 +16,25 @@ class Search:
         """
         if data == None:
             return None
-
         if type(data) != dtype:
             return None
-
         return True
 
     def get_pattern(self, pattern, strip=True):
         """
         This method converts the given string to regex pattern
         """
-        if type(pattern) == re.Pattern:
-            return pattern
+        try:
+            if type(pattern) == re.Pattern:
+                return pattern
+        except AttributeError:
+            if type(pattern) != str:
+                return pattern
 
         if strip and type(pattern) == str:
             pattern = pattern.strip()
 
         return re.compile(pattern)
-
 
     def search_in_tree(self, pattern, data=None):
         if not self.validate(data):
@@ -41,10 +42,10 @@ class Search:
 
         p = self.get_pattern(pattern)
         for key in data.keys():
-            if p.match(key):
-                return key
+            res = p.match(key)
+            if res:
+                return res
         return None
-
 
     def search_all_in_tree(self, pattern, data=None):
         if not self.validate(data):
@@ -53,9 +54,9 @@ class Search:
         p = self.get_pattern(pattern)
         match = OrderedDict()
         for key in data.keys():
-            if p.match(key):
-                match[key] = key
-
+            res = p.match(key)
+            if res:
+                match[res] = key
         return match if len(match) else None
 
     def search_in_tree_level(self, pattern, data=None, level=0):
@@ -75,7 +76,7 @@ class Search:
         return None
 
     def search_in_table(self, pattern, data=None, header_column=None):
-        if not self.validate(data):
+        if not self.validate(data, dtype=list):
             return None
 
         p = self.get_pattern(pattern)
@@ -84,13 +85,13 @@ class Search:
                 return each_row
 
     def search_all_in_table(self, pattern, data=None, header_column=None):
-        if not self.validate(data):
+        if not self.validate(data, dtype=list):
             return None
 
         p = self.get_pattern(pattern)
         match = []
+        match = []
         for each_row in data:
             if p.match(each_row[header_column]):
                 match.append(each_row)
-
         return match if len(match) else None

@@ -23,21 +23,27 @@ class TestParser:
         p.s.shcmd_dict['ip_interface_brief'] = p.parse_table(p.s.shcmd_dict['ip_interface_brief'], header)
         yield p
 
+    def test_search_in_tree_level(self, setup):
+        data = setup.s.shcmd_dict
+        pattern = r' privilege level 15'
+        m = setup.search.search_in_tree_level(pattern, data['running'], level=10)
+        assert pattern.strip() in m
+
     def test_search_all_in_tree(self, setup):
         data = setup.s.shcmd_dict
-        pattern = 'interface\s+FastEthernet.*'
+        pattern = r'interface\s+FastEthernet.*'
         m = setup.search.search_all_in_tree(pattern, data['running'])
         assert 'interface FastEthernet0/0' in m.values()
 
     def test_search_in_tree(self, setup):
         data = setup.s.shcmd_dict
-        pattern = 'Cisco\s+IOS\s+Software.*'
+        pattern = r'Cisco\s+IOS\s+Software.*'
         m = setup.search.search_in_tree(pattern, data['version'])
         assert 'Version 12.4(25d)' in m.group(0)
 
     def test_search_in_table(self, setup):
         data = setup.s.shcmd_dict
-        pattern = 'R\d+'
+        pattern = r'R\d+'
         header = 'Device ID'
         m = setup.search.search_in_table(pattern, data['cdp_neighbors'], header)
         assert 'Device ID' in m
@@ -45,7 +51,7 @@ class TestParser:
 
     def test_search_all_in_table(self, setup):
         data = setup.s.shcmd_dict
-        pattern = 'FastEthernet.*'
+        pattern = r'FastEthernet.*'
         header = 'Interface'
         m = setup.search.search_all_in_table(pattern, data['ip_interface_brief'], header)
         assert type(m) is list

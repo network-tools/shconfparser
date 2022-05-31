@@ -1,0 +1,30 @@
+---
+# configuration spec at https://github.com/actions/labeler/blob/master/README.md
+sh/docs:
+  - CHANGELOG.md
+  - CONTRIBUTING.md
+  - LICENSE
+  - README.md
+sh/tests:
+  - tests/*
+  - tox.ini
+sh/code:
+  - data/*
+  - asserts/*
+  - shconfparser
+sh/ci:
+  - .github/workflows/*
+  - .github/labels/*
+  - .travis.yml
+  - .coveralls.yml
+sh/settings:
+  - setup.py
+  - tox.ini
+  - .gitignore
+  - .python-version
+sh/pip:
+  - requirements.txt
+  - requirements_dev.txt
+  - requirements_dev27.txt
+  - Pipfile
+  - Pipfile.lock
