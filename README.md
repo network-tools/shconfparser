@@ -1,11 +1,13 @@
 # Show Configuration Parser (shconfparser)
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Build Status](https://travis-ci.org/network-tools/shconfparser.svg?branch=master)](https://travis-ci.org/network-tools/shconfparser)
-[![Coverage Status](https://coveralls.io/repos/github/network-tools/shconfparser/badge.svg?branch=master)](https://coveralls.io/github/network-tools/shconfparser?branch=master)
+[![pytest ](https://github.com/network-tools/shconfparser/actions/workflows/pytest.yml/badge.svg)](https://github.com/network-tools/shconfparser/actions/workflows/pytest.yml)
+[![pytest 2.7.x ](https://github.com/network-tools/shconfparser/actions/workflows/pytest_27.yml/badge.svg)](https://github.com/network-tools/shconfparser/actions/workflows/pytest_27.yml)
+[![codecov](https://codecov.io/gh/network-tools/shconfparser/branch/master/graph/badge.svg?token=3HcQhmQJnL)](https://codecov.io/gh/network-tools/shconfparser)
 [![Downloads](https://pepy.tech/badge/shconfparser)](https://pepy.tech/project/shconfparser)
 [![GitHub issues open](https://img.shields.io/github/issues/network-tools/shconfparser.svg?)](https://github.com/network-tools/shconfparser/issues)
-[![Known Vulnerabilities](https://snyk.io/test/github/network-tools/shconfparser/badge.svg?targetFile=requirements.txt)](https://snyk.io/test/github/network-tools/shconfparser?targetFile=requirements.txt)
+[![CodeQL](https://github.com/network-tools/shconfparser/actions/workflows/codeql-analysis.yml/badge.svg)](https://github.com/network-tools/shconfparser/actions/workflows/codeql-analysis.yml)
+[![PyPI](https://github.com/network-tools/shconfparser/actions/workflows/publish.yml/badge.svg)](https://github.com/network-tools/shconfparser/actions/workflows/publish.yml)
 
 - [Introduction](#introduction)
 - [Docs](#docs)
