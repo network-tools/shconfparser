@@ -1,3 +1,7 @@
+"""
+Goal: To search the given text in the data of type dict
+"""
+
 from collections import OrderedDict
 import re
 
@@ -6,32 +10,87 @@ class Search:
     def __init__(self):
         pass
 
+    def validate(self, data, dtype=OrderedDict):
+        """
+        This method validates the given data
+        """
+        if data == None:
+            return None
+
+        if type(data) != dtype:
+            return None
+
+        return True
+
+    def get_pattern(self, pattern, strip=True):
+        """
+        This method converts the given string to regex pattern
+        """
+        if type(pattern) == re.Pattern:
+            return pattern
+
+        if strip and type(pattern) == str:
+            pattern = pattern.strip()
+
+        return re.compile(pattern)
+
+
     def search_in_tree(self, pattern, data=None):
-        if data == None: return None
-        pattern = re.compile(pattern)
+        if not self.validate(data):
+            return None
+
+        p = self.get_pattern(pattern)
         for key in data.keys():
-            if pattern.match(key): return pattern.match(key)
+            if p.match(key):
+                return key
+        return None
+
 
     def search_all_in_tree(self, pattern, data=None):
-        if data == None: return None
-        pattern = re.compile(pattern)
+        if not self.validate(data):
+            return None
+
+        p = self.get_pattern(pattern)
         match = OrderedDict()
         for key in data.keys():
-            if pattern.match(key):
-                match[pattern.match(key)] = key
+            if p.match(key):
+                match[key] = key
+
         return match if len(match) else None
 
+    def search_in_tree_level(self, pattern, data=None, level=0):
+        if not self.validate(data):
+            return None
+
+        p = self.get_pattern(pattern)
+        for key in data:
+            if p.match(key):
+                return key
+            if data[key] == None:
+                continue
+            if type(data[key]) == OrderedDict and level > 0:
+                res = self.search_in_tree_level(p, data[key], level=level - 1)
+                if res:
+                    return res
+        return None
+
     def search_in_table(self, pattern, data=None, header_column=None):
-        if data == None: return None
-        pattern = re.compile(pattern)
+        if not self.validate(data):
+            return None
+
+        p = self.get_pattern(pattern)
         for each_row in data:
-            if pattern.match(each_row[header_column]): return each_row
+            if p.match(each_row[header_column]):
+                return each_row
 
     def search_all_in_table(self, pattern, data=None, header_column=None):
-        if data == None: return None
-        pattern = re.compile(pattern)
+        if not self.validate(data):
+            return None
+
+        p = self.get_pattern(pattern)
         match = []
         for each_row in data:
-            if pattern.match(each_row[header_column]):
+            if p.match(each_row[header_column]):
                 match.append(each_row)
+
         return match if len(match) else None
