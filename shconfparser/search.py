@@ -24,8 +24,12 @@ class Search:
         """
         This method converts the given string to regex pattern
         """
-        if type(pattern) == re.Pattern:
-            return pattern
+        try:
+            if type(pattern) == re.Pattern:
+                return pattern
+        except AttributeError:
+            if type(pattern) != str:
+                return pattern
 
         if strip and type(pattern) == str:
             pattern = pattern.strip()
