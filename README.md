@@ -296,6 +296,7 @@ If you're Interested in the source, you can always pull from the github repo:
 - Python [GeeksforGeeks](https://www.geeksforgeeks.org/python-programming-language/)
 - [Ordered Dictionary](https://docs.python.org/2/library/collections.html#collections.OrderedDict)
 - [JSON](http://json.org/)
+- [Python Tutorial by Scaler Topics](https://www.scaler.com/topics/python/)
 
 ## Bug Tracker and Support
 
