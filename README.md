@@ -297,6 +297,7 @@ If you're Interested in the source, you can always pull from the github repo:
 - [Ordered Dictionary](https://docs.python.org/2/library/collections.html#collections.OrderedDict)
 - [JSON](http://json.org/)
 - [Python Tutorial by Scaler Topics](https://www.scaler.com/topics/python/)
+- [Python Tutorial by Wiingy](https://wiingy.com/learn/python/python-tutorial/)
 
 ## Bug Tracker and Support
 
