@@ -10,5 +10,5 @@ updates:
     schedule:
       interval: "monthly" # Options: daily, weekly, monthly
     commit-message:
-      prefix: "fix" # Changes the commit message prefix
+      prefix: "chore" # Changes the commit message prefix
     versioning-strategy: "auto"
