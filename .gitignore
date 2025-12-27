@@ -84,6 +84,7 @@ celerybeat-schedule
 .env
 
 # virtualenv
+.venv/
 venv/
 ENV/
 
@@ -98,3 +99,19 @@ ENV/
 
 # Vim or Emac
 .tags
+
+# uv package manager
+.uv/
+uv.lock
+
+# Ruff cache
+.ruff_cache/
+
+# Mypy cache
+.mypy_cache/
+.dmypy.json
+dmypy.json
+
+# OS files
+.DS_Store
+Thumbs.db
