@@ -1,0 +1,10 @@
+"""Type stubs for shconfparser package."""
+
+from typing import Any, Dict, List, Optional, OrderedDict, Union
+import logging
+
+# Type aliases
+ConfigData = Union[str, Dict[str, Any], List[Dict[str, Any]]]
+TreeDict = OrderedDict[str, Union[str, "TreeDict"]]
+TableRow = Dict[str, str]
+TableData = List[TableRow]
