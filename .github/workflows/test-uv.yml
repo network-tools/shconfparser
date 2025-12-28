@@ -17,15 +17,10 @@ jobs:
       uses: astral-sh/setup-uv@v4
       with:
         enable-cache: true
-
-    - name: Set up Python 3.13
-      run: uv python install 3.13
-
-    - name: Create virtual environment
-      run: uv venv
+        python-version: "3.13"
 
     - name: Install dependencies
-      run: uv pip install -e ".[dev]"
+      run: uv sync --extra dev
 
     - name: Run ruff linter
       run: uv run ruff check .
@@ -55,12 +50,8 @@ jobs:
 
     - name: Install uv
       uses: astral-sh/setup-uv@v4
-
-    - name: Set up Python
-      run: uv python install 3.12
-
-    - name: Create virtual environment
-      run: uv venv
+      with:
+        python-version: "3.13"
 
     - name: Build package
       run: uv build
