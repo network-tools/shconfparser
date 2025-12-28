@@ -43,6 +43,7 @@ Table Structure
 🔒 **Type Safe** - Full type hints and py.typed marker  
 🎯 **Vendor Independent** - Works with any network device configuration  
 📊 **Multiple Formats** - Parse trees, tables, and unstructured data  
+🔍 **XPath Queries** - Search configs with XPath-style syntax (NEW!)  
 🧪 **Well Tested** - 80%+ code coverage, tested on Python 3.8-3.13  
 
 ## Quick Start
@@ -206,6 +207,61 @@ match = p.search.search_in_table(pattern, cdp_data, 'Device ID')
 print(match)
 # {'Device ID': 'R2', 'Local Intrfce': 'Fas 0/0', ...}
 ```
+
+### XPath-Style Queries (New in 3.0!)
+
+Query parsed configuration trees using XPath-style syntax:
+
+```python
+from shconfparser.parser import Parser
+
+p = Parser()
+data = p.read('multiple_commands.txt')
+data = p.split(data)
+
+# Parse the running config into a tree
+data['running'] = p.parse_tree(data['running'])
+
+# Now use XPath queries on the parsed tree
+# Find all IP addresses anywhere in config
+result = p.xpath('//ip/address', tree=data['running'])
+print(f"Found {result.count} IP addresses")
+
+# Get specific interface configuration
+result = p.xpath('/interface/FastEthernet0-0/ip/address', tree=data['running'])
+if result:
+    print(f"IP: {result.data}")
+
+# List all interface names using wildcard
+result = p.xpath('/interface/*', tree=data['running'])
+print(f"Interfaces: {', '.join(result.matches)}")
+
+# Filter interfaces by pattern
+result = p.xpath('/interface[FastEthernet*]/description', tree=data['running'])
+for desc in result.matches:
+    print(f"  - {desc}")
+```
+
+**Supported XPath Features:**
+- **Absolute paths**: `/interface/FastEthernet0-0/ip/address`
+- **Recursive search**: `//ip/address` (find anywhere)
+- **Wildcards**: `/interface/*/description` (all interfaces)
+- **Predicates**: `/interface[GigabitEthernet*]` (pattern matching)
+- **Root access**: `/` (entire tree)
+
+**Or use stored tree directly:**
+```python
+p = Parser()
+data = p.read('running_config.txt')
+p.parse_tree(data)  # Stores in p.data
+
+# Query uses stored tree automatically
+result = p.xpath('//ip/address')
+for addr in result.matches:
+    print(addr)
+```
+
+See [docs/XPATH_GUIDE.md](docs/XPATH_GUIDE.md) for complete XPath documentation.
 
 ### Alternative: Using Individual Components
 

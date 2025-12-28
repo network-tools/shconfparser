@@ -132,3 +132,28 @@ class FileReadResult:
     def __bool__(self) -> bool:
         """Allow boolean evaluation of result."""
         return self.success
+
+
+@dataclass
+class XPathResult:
+    """Result of an XPath query operation.
+
+    Attributes:
+        success: Whether query found matches
+        data: Primary match (first result)
+        matches: List of all matches found
+        count: Number of matches
+        query: Original XPath query string
+        error: Error message if query failed
+    """
+
+    success: bool
+    data: Any = None
+    matches: List[Any] = field(default_factory=list)
+    count: int = 0
+    query: str = ""
+    error: Optional[str] = None
+
+    def __bool__(self) -> bool:
+        """Allow boolean evaluation of result."""
+        return self.success

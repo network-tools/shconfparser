@@ -30,6 +30,7 @@ from .models import (
     TreeData,
     TreeParseResult,
     ValidationResult,
+    XPathResult,
 )
 from .parser import Parser
 from .protocols import Parsable, Readable, Searchable, Splittable, Validatable
@@ -38,6 +39,7 @@ from .search import Search
 from .shsplit import ShowSplit
 from .table_parser import TableParser
 from .tree_parser import TreeParser
+from .xpath import XPath
 
 __version__ = "3.0.0"
 __author__ = "Kiran Kumar Kotari"
@@ -51,6 +53,7 @@ __all__ = [
     "Reader",
     "Search",
     "ShowSplit",
+    "XPath",
     # Exceptions
     "ParserError",
     "InvalidDataError",
@@ -68,6 +71,7 @@ __all__ = [
     "SearchResult",
     "ValidationResult",
     "FileReadResult",
+    "XPathResult",
     "TreeData",
     "TableData",
     "TableRow",

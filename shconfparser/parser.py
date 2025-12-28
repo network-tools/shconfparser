@@ -12,12 +12,13 @@ import sys
 from collections import OrderedDict
 from typing import Any, List, Optional
 
-from .models import TableData, TableParseResult, TreeData, TreeParseResult
+from .models import TableData, TableParseResult, TreeData, TreeParseResult, XPathResult
 from .reader import Reader
 from .search import Search
 from .shsplit import ShowSplit
 from .table_parser import TableParser
 from .tree_parser import TreeParser
+from .xpath import XPath
 
 
 class Parser:
@@ -57,6 +58,7 @@ class Parser:
         self.search: Search = Search()
         self.tree_parser: TreeParser = TreeParser()
         self.table_parser: TableParser = TableParser()
+        self.xpath_engine: XPath = XPath()
 
     def __repr__(self) -> str:
         """Return string representation for debugging."""
@@ -247,3 +249,47 @@ class Parser:
             JSON string representation
         """
         return json.dumps(data, indent=indent)
+
+    def xpath(self, query: str, tree: Optional[TreeData] = None) -> XPathResult:
+        """Execute XPath-style query on configuration tree.
+
+        Uses stored tree (self.data) by default, or accepts a custom tree.
+
+        Supports:
+        - Absolute paths: /interface/GigabitEthernet0-0-1/ip/address
+        - Relative paths: //ip/address (find anywhere)
+        - Wildcards: /interface/*/ip
+        - Get all keys: /interface/* (list all interfaces)
+        - Predicates: /interface[GigabitEthernet*]
+
+        Args:
+            query: XPath-style query string
+            tree: Optional tree to search (uses self.data if not provided)
+
+        Returns:
+            XPathResult with matches, count, and metadata
+
+        Example:
+            >>> p = Parser()
+            >>> p.read('config.txt')
+            >>> p.parse_tree()
+            >>> # Search using stored tree
+            >>> results = p.xpath('//ip/address')
+            >>> # Search custom tree
+            >>> results = p.xpath('//ip/address', tree=custom_tree)
+        """
+        search_tree = tree if tree is not None else self.data
+
+        if not search_tree:
+            self.logger.warning("No tree data available for XPath query")
+            return XPathResult(
+                success=False,
+                error="No tree data available. Parse a tree first or provide tree parameter.",
+                query=query,
+            )
+
+        try:
+            return self.xpath_engine.query(search_tree, query)
+        except Exception as e:
+            self.logger.error(f"XPath query failed: {str(e)}")
+            return XPathResult(success=False, error=str(e), query=query)
