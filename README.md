@@ -28,6 +28,10 @@ shconfparser is a vendor independent library where you can parse the following f
 - Table structure *`i.e. show ip interface`*
 - Data *`i.e. show version`*
 
+YAML Format Output
+
+![show run to YAML structure](https://raw.githubusercontent.com/kirankotari/shconfparser/master/asserts/img/sh_run_yaml.png)
+
 Tree Structure
 
 ![show run to tree structure](https://raw.githubusercontent.com/kirankotari/shconfparser/master/asserts/img/sh_run.png)
@@ -43,6 +47,8 @@ Table Structure
 🔒 **Type Safe** - Full type hints and py.typed marker  
 🎯 **Vendor Independent** - Works with any network device configuration  
 📊 **Multiple Formats** - Parse trees, tables, and unstructured data  
+📄 **Format Flexibility** - Output as JSON or YAML structures  
+🔍 **XPath Queries** - NSO-style queries with context tracking (NEW!)  
 🧪 **Well Tested** - 80%+ code coverage, tested on Python 3.8-3.13  
 
 ## Quick Start
@@ -61,27 +67,30 @@ uv pip install shconfparser
 
 ### Basic Usage
 
-**Single show command:**
+**Single show command with YAML format (recommended):**
 ```python
 from shconfparser.parser import Parser
 
-p = Parser()
+# Use YAML format for cleaner output and XPath support
+p = Parser(output_format='yaml')
 data = p.read('running_config.txt')
 
 # Parse directly (no split needed for single show running command)
 tree = p.parse_tree(data)
 print(p.dump(tree, indent=2))
+
+# Query with XPath
+result = p.xpath('/hostname')
+print(result.data)  # 'R1'
 ```
 
 <details>
-<summary>Alternative: Access internal properties</summary>
+<summary>Alternative: JSON format (backward compatible)</summary>
 
 ```python
-p = Parser()
-p.read('running_config.txt')
-
-# Access reader data directly
-tree = p.parse_tree(p.r.data)
+p = Parser()  # Default is JSON format (OrderedDict)
+data = p.read('running_config.txt')
+tree = p.parse_tree(data)
 print(p.dump(tree, indent=4))
 ```
 </details>
@@ -90,7 +99,7 @@ print(p.dump(tree, indent=4))
 ```python
 from shconfparser.parser import Parser
 
-p = Parser()
+p = Parser(output_format='yaml')  # YAML format recommended
 data = p.read('multiple_commands.txt')  # Contains multiple show outputs
 data = p.split(data)  # Split into separate commands
 data.keys()
@@ -206,6 +215,158 @@ match = p.search.search_in_table(pattern, cdp_data, 'Device ID')
 print(match)
 # {'Device ID': 'R2', 'Local Intrfce': 'Fas 0/0', ...}
 ```
+
+### Output Format Selection (New in 3.0!)
+
+Parse configurations to JSON (OrderedDict) or YAML-friendly dict structures:
+
+```python
+from shconfparser.parser import Parser
+
+# Default: JSON format (OrderedDict - backward compatible)
+p = Parser()
+data = p.read('running_config.txt')
+tree = p.parse_tree(data)  # Returns OrderedDict
+print(type(tree))  # <class 'collections.OrderedDict'>
+
+# YAML format: cleaner hierarchical structure
+p = Parser(output_format='yaml')
+data = p.read('running_config.txt')
+tree_yaml = p.parse_tree(data)  # Returns dict with nested structure
+print(type(tree_yaml))  # <class 'dict'>
+
+# Override format per call
+p = Parser()  # Default is JSON
+tree_json = p.parse_tree(data)  # OrderedDict
+tree_yaml = p.parse_tree(data, format='yaml')  # dict
+
+# YAML structure example:
+# Input: "interface FastEthernet0/0" with nested config
+# JSON: {"interface FastEthernet0/0": {...}}
+# YAML: {"interface": {"FastEthernet0/0": {...}}}
+```
+
+**Format Comparison:**
+
+```python
+# JSON format (default) - preserves exact CLI structure
+{
+    "interface FastEthernet0/0": {
+        "ip address 1.1.1.1 255.255.255.0": "",
+        "duplex auto": ""
+    }
+}
+
+# YAML format - hierarchical and human-readable
+{
+    "interface": {
+        "FastEthernet0/0": {
+            "ip": {
+                "address": "1.1.1.1 255.255.255.0"
+            },
+            "duplex": "auto"
+        }
+    }
+}
+```
+
+**Benefits of YAML format:**
+- Cleaner hierarchy for nested configurations
+- Better for programmatic access
+- Easier to convert to actual YAML files
+- Natural structure for complex configs
+- Required for XPath queries
+
+### XPath Queries (New in 3.0!)
+
+Query YAML-formatted configurations using NSO-style XPath with optional context tracking:
+
+```python
+from shconfparser.parser import Parser
+
+# XPath requires YAML format
+p = Parser(output_format='yaml')
+data = p.read('running_config.txt')
+tree = p.parse_tree(data)
+
+# Simple queries
+result = p.xpath('/hostname')
+print(result.data)  # 'R1'
+
+# Wildcards - find all interface duplex settings
+result = p.xpath('/interface/*/duplex')
+print(result.matches)  # ['auto', 'auto']
+print(result.count)    # 2
+
+# Predicates with slashes (network interface names)
+result = p.xpath('/interface[FastEthernet0/0]/duplex')
+print(result.data)  # 'auto'
+
+# Recursive search - find anywhere in tree
+result = p.xpath('//duplex')
+print(result.matches)  # ['auto', 'auto']
+
+# Predicate wildcards
+result = p.xpath('/interface[FastEthernet*]/ip/address')
+print(result.data)  # '1.1.1.1 255.255.255.0'
+```
+
+**Context Options** - Solve the "which interface?" problem:
+
+```python
+# Problem: Can't identify source with wildcards
+result = p.xpath('/interface/*/duplex')
+print(result.matches)  # ['auto', 'auto'] - Which interface?
+
+# Solution 1: context='none' (default - just values)
+result = p.xpath('/interface/*/duplex', context='none')
+print(result.matches)  # ['auto', 'auto']
+
+# Solution 2: context='partial' (from wildcard match point)
+result = p.xpath('/interface/*/duplex', context='partial')
+print(result.matches)
+# [{'FastEthernet0/0': {'duplex': 'auto'}},
+#  {'FastEthernet0/1': {'duplex': 'auto'}}]
+
+# Solution 3: context='full' (complete tree hierarchy)
+result = p.xpath('/interface/*/duplex', context='full')
+print(result.matches)
+# [{'interface': {'FastEthernet0/0': {'duplex': 'auto'}}},
+#  {'interface': {'FastEthernet0/1': {'duplex': 'auto'}}}]
+
+# Path tracking (always available)
+result = p.xpath('/interface/*/speed')
+print(result.paths)
+# [['interface', 'FastEthernet0/0', 'speed'],
+#  ['interface', 'FastEthernet0/1', 'speed']]
+```
+
+**XPath Features:**
+- ✅ Absolute paths: `/interface/FastEthernet0/0/duplex`
+- ✅ Recursive search: `//duplex` (find anywhere)
+- ✅ Wildcards: `/interface/*/duplex`
+- ✅ Predicates: `/interface[FastEthernet0/0]`
+- ✅ Predicate wildcards: `/interface[FastEthernet*]`
+- ✅ Context tracking: See which match came from where
+- ✅ Path tracking: `result.paths` shows path components
+
+**XPathResult Structure:**
+```python
+result = p.xpath('//duplex')
+print(result.success)   # True
+print(result.data)      # First match: 'auto'
+print(result.matches)   # All matches: ['auto', 'auto']
+print(result.count)     # Number of matches: 2
+print(result.query)     # Original query: '//duplex'
+print(result.paths)     # Path to each match
+print(result.error)     # Error message if failed
+
+# Boolean check
+if result:
+    print(f"Found {result.count} matches")
+```
+
+**Note:** XPath queries only work with `output_format='yaml'`. JSON format (OrderedDict) preserves exact CLI structure and should use traditional dict navigation.
 
 ### Alternative: Using Individual Components
 

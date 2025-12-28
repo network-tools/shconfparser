@@ -10,14 +10,22 @@ import logging
 import re
 import sys
 from collections import OrderedDict
-from typing import Any, List, Optional
+from typing import Any, Dict, List, Optional
 
-from .models import TableData, TableParseResult, TreeData, TreeParseResult
+from .models import (
+    TableData,
+    TableParseResult,
+    TreeData,
+    TreeDataOrDict,
+    TreeParseResult,
+    XPathResult,
+)
 from .reader import Reader
 from .search import Search
 from .shsplit import ShowSplit
 from .table_parser import TableParser
 from .tree_parser import TreeParser
+from .xpath import XPath
 
 
 class Parser:
@@ -38,16 +46,25 @@ class Parser:
 
     name: str = "shconfparser"
 
-    def __init__(self, log_level: int = logging.INFO, log_format: Optional[str] = None) -> None:
+    def __init__(
+        self,
+        log_level: int = logging.INFO,
+        log_format: Optional[str] = None,
+        output_format: str = "json",
+    ) -> None:
         """Initialize the Parser.
 
         Args:
             log_level: Logging level (default: INFO)
             log_format: Custom log format string
+            output_format: Default output format for parse_tree ('json' or 'yaml', default: 'json')
         """
         # State for backward compatibility
         self.data: TreeData = OrderedDict()
         self.table: TableData = []
+
+        # Output format configuration
+        self.output_format: str = output_format
 
         # Logging
         self.format: Optional[str] = log_format
@@ -57,6 +74,7 @@ class Parser:
         self.search: Search = Search()
         self.tree_parser: TreeParser = TreeParser()
         self.table_parser: TableParser = TableParser()
+        self.xpath_engine: XPath = XPath()
 
     def __repr__(self) -> str:
         """Return string representation for debugging."""
@@ -78,7 +96,7 @@ class Parser:
         logger.setLevel(log_level)
         return logger
 
-    def parse_tree(self, lines: List[str]) -> TreeData:
+    def parse_tree(self, lines: List[str], format: Optional[str] = None) -> TreeDataOrDict:
         """Parse hierarchical configuration into tree structure.
 
         Delegates to TreeParser for processing. Maintains state for
@@ -86,17 +104,30 @@ class Parser:
 
         Args:
             lines: Configuration lines with indentation
+            format: Output format ('json' or 'yaml'). If None, uses self.output_format
 
         Returns:
-            Nested OrderedDict representing configuration hierarchy
+            Nested OrderedDict (json format) or dict (yaml format) representing configuration hierarchy
 
         Example:
             >>> parser = Parser()
             >>> config = ['interface Ethernet0', '  ip address 1.1.1.1']
-            >>> tree = parser.parse_tree(config)
+            >>> tree = parser.parse_tree(config)  # Returns OrderedDict (JSON)
+            >>> tree_yaml = parser.parse_tree(config, format='yaml')  # Returns dict (YAML-friendly)
         """
-        self.data = self.tree_parser.parse_tree(lines)
-        return self.data
+        # Parse to OrderedDict first
+        ordered_tree = self.tree_parser.parse_tree(lines)
+
+        # Transform based on format
+        output_format = format if format is not None else self.output_format
+
+        if output_format == "yaml":
+            yaml_tree = self._tree_to_yaml_structure(ordered_tree)
+            self.data = yaml_tree  # type: ignore[assignment]  # Store YAML format for xpath
+            return yaml_tree
+        else:
+            self.data = ordered_tree  # Store JSON format
+            return ordered_tree
 
     def parse_tree_safe(self, lines: List[str]) -> TreeParseResult:
         """Parse tree structure with structured result.
@@ -247,3 +278,147 @@ class Parser:
             JSON string representation
         """
         return json.dumps(data, indent=indent)
+
+    def _tree_to_yaml_structure(self, tree: TreeData) -> Dict[str, Any]:
+        """Transform OrderedDict tree to YAML-friendly structure.
+
+        Converts flat keys into nested dict structure with smart depth limiting:
+        - Containers (OrderedDict): Split fully, last word = identifier
+        - Leaves (empty string): Max 2 levels, rest = value
+
+        Examples:
+            "interface FastEthernet0/0" (container) →
+                {"interface": {"FastEthernet0/0": {...}}}
+
+            "hostname R1" (leaf) →
+                {"hostname": "R1"}
+
+            "ip address 1.1.1.1 255.255.255.0" (leaf) →
+                {"ip": {"address": "1.1.1.1 255.255.255.0"}}
+
+        Args:
+            tree: OrderedDict tree from parse_tree
+
+        Returns:
+            Nested dict suitable for YAML serialization
+        """
+        result: Dict[str, Any] = {}
+
+        for key, value in tree.items():
+            # Split key by spaces
+            parts = key.split()
+
+            if len(parts) == 1:
+                # Single word key
+                if isinstance(value, OrderedDict):
+                    result[key] = self._tree_to_yaml_structure(value)
+                else:
+                    result[key] = value if value else None
+
+            elif isinstance(value, OrderedDict):
+                # Container with nested OrderedDict - split fully
+                # Last word becomes identifier, rest is path
+                *path_parts, identifier = parts
+
+                # Build nested structure
+                current: Dict[str, Any] = result
+                for part in path_parts:
+                    if part not in current:
+                        current[part] = {}
+                    current = current[part]
+
+                # Add the identifier with its nested value
+                current[identifier] = self._tree_to_yaml_structure(value)
+
+            else:
+                # Leaf value (empty string) - limit to 2 levels max
+                if len(parts) == 2:
+                    # Two words: first is key, second is value
+                    # "hostname R1" → hostname: R1
+                    # "duplex auto" → duplex: auto
+                    result[parts[0]] = parts[1]
+
+                elif len(parts) > 2:
+                    # More than 2 words: first is level 1, second is level 2, rest is value
+                    # "ip address 1.1.1.1 255.255.255.0" →
+                    #   ip: {address: "1.1.1.1 255.255.255.0"}
+                    level1, level2 = parts[0], parts[1]
+                    value_str = " ".join(parts[2:])
+
+                    if level1 not in result:
+                        result[level1] = {}
+                    elif not isinstance(result[level1], dict):
+                        # Key exists as non-dict, convert to dict
+                        result[level1] = {}
+                    result[level1][level2] = value_str
+
+        return result
+
+    def xpath(
+        self, query: str, tree: Optional[Dict[str, Any]] = None, context: str = "none"
+    ) -> XPathResult:
+        """Execute XPath-style query on YAML configuration tree.
+
+        XPath queries work on YAML format (dict) trees. If tree is not provided,
+        uses self.data. For best results, parse with output_format='yaml'.
+
+        Supports:
+        - Absolute paths: /interface/FastEthernet0/0/duplex
+        - Recursive search: //duplex (find anywhere)
+        - Wildcards: /interface/*/duplex
+        - Predicates: /interface[FastEthernet0/0]
+
+        Args:
+            query: XPath-style query string
+            tree: Optional dict tree to search (uses self.data if not provided)
+            context: How much context to include in matches:
+                - 'none': Just matched values (default)
+                - 'partial': From wildcard match point to value
+                - 'full': Full tree hierarchy from root
+
+        Returns:
+            XPathResult with matches, count, and metadata
+
+        Example:
+            >>> p = Parser(output_format='yaml')
+            >>> lines = p.read('config.txt')
+            >>> p.parse_tree(lines)
+            >>> result = p.xpath('/interface/FastEthernet0/0/duplex')
+            >>> result.data  # 'auto'
+            >>> result = p.xpath('/interface/*/duplex', context='partial')
+            >>> # Shows which interface each match came from
+        """
+        search_tree = tree if tree is not None else self.data
+
+        if not search_tree:
+            self.logger.warning("No tree data available for XPath query")
+            return XPathResult(
+                success=False,
+                error="No tree data available. Parse a tree first or provide tree parameter.",
+                query=query,
+            )
+
+        # XPath only works with YAML format (dict, not OrderedDict)
+        if self.output_format != "yaml":
+            return XPathResult(
+                success=False,
+                error=f"XPath queries only work with output_format='yaml', current format is '{self.output_format}'",
+                query=query,
+            )
+
+        # Ensure search_tree is a dict
+        if not isinstance(search_tree, dict):
+            self.logger.warning(
+                "XPath requires dict structure. " f"Got {type(search_tree).__name__}."
+            )
+            return XPathResult(
+                success=False,
+                error=f"XPath requires dict structure, got {type(search_tree).__name__}",
+                query=query,
+            )
+
+        try:
+            return self.xpath_engine.query(search_tree, query, context)
+        except Exception as e:
+            self.logger.error(f"XPath query failed: {str(e)}")
+            return XPathResult(success=False, error=str(e), query=query)

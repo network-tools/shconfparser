@@ -22,6 +22,10 @@ This is a major release focused on modernizing the project infrastructure and to
 - ✨ **Type hints** - Improved IDE support and type safety
 - ✨ **py.typed** marker - PEP 561 compliance
 - ✨ **Modern CI/CD** - GitHub Actions with uv
+- ✨ **YAML output format** - Cleaner hierarchical structure with two-level split optimization
+- ✨ **XPath queries** - NSO-style queries for YAML-formatted configurations
+- ✨ **XPath context tracking** - Three context options (none/partial/full) to identify wildcard match sources
+- ✨ **XPath path tracking** - XPathResult.paths shows path components to each match
 - ✨ **MODERNIZATION_GUIDE.md** - Comprehensive migration guide
 - ✨ **BUSINESS_STANDARDS.md** - Enterprise compliance documentation
 - ✨ **PYTHON_COMPATIBILITY.md** - Version support documentation

@@ -10,6 +10,7 @@ from typing import Any, Dict, List, Optional, Union
 
 # Type aliases for complex structures
 TreeData = OrderedDict[str, Union[str, "TreeData"]]
+TreeDataOrDict = Union[TreeData, Dict[str, Any]]  # For format flexibility
 TableRow = Dict[str, str]
 TableData = List[TableRow]
 
@@ -128,6 +129,33 @@ class FileReadResult:
     path: str = ""
     error: Optional[str] = None
     encoding: str = "utf-8"
+
+    def __bool__(self) -> bool:
+        """Allow boolean evaluation of result."""
+        return self.success
+
+
+@dataclass
+class XPathResult:
+    """Result of an XPath query operation.
+
+    Attributes:
+        success: Whether query found matches
+        data: Primary match (first result)
+        matches: List of all matches found
+        count: Number of matches
+        query: Original XPath query string
+        error: Error message if query failed
+        paths: List of paths to each match (when context tracking enabled)
+    """
+
+    success: bool
+    data: Any = None
+    matches: List[Any] = field(default_factory=list)
+    count: int = 0
+    query: str = ""
+    error: Optional[str] = None
+    paths: List[List[str]] = field(default_factory=list)
 
     def __bool__(self) -> bool:
         """Allow boolean evaluation of result."""

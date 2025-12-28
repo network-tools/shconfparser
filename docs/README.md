@@ -14,6 +14,7 @@ Welcome to the shconfparser documentation!
 
 | Document | Description | Audience |
 |----------|-------------|----------|
+| [XPath Guide](XPATH_GUIDE.md) | Complete XPath query documentation | All users |
 | [Modernization Guide](MODERNIZATION_GUIDE.md) | Complete v2.x to v3.0 migration guide | Existing users, developers |
 | [Architecture](ARCHITECTURE.md) | Visual architecture diagrams and structure | Developers, architects |
 | [Business Standards](BUSINESS_STANDARDS.md) | Enterprise compliance documentation | Maintainers, enterprises |
@@ -31,6 +32,7 @@ Welcome to the shconfparser documentation!
 1. Start with the main [README.md](../README.md)
 2. Follow [Installation instructions](../README.md#installation-and-downloads)
 3. Check [Usage Examples](../README.md#usage-examples)
+4. Try [XPath Queries](../README.md#xpath-queries-new-in-30) for advanced querying
 
 ### For Contributors
 1. Read [QUICKSTART.md](QUICKSTART.md) (5 minutes)
@@ -95,6 +97,7 @@ Detailed summary of the modernization project:
 ### I want to...
 
 - **Get started contributing** → [QUICKSTART.md](QUICKSTART.md)
+- **Learn XPath queries** → [XPATH_GUIDE.md](XPATH_GUIDE.md)
 - **Understand v3.0 changes** → [MODERNIZATION_GUIDE.md](MODERNIZATION_GUIDE.md)
 - **Migrate from v2.x** → [MODERNIZATION_GUIDE.md](MODERNIZATION_GUIDE.md#migration-from-v2x-to-v30)
 - **Learn about the architecture** → [ARCHITECTURE.md](ARCHITECTURE.md)

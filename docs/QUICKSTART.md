@@ -91,4 +91,24 @@ make check-all
 3. **Write tests** - For any new features or bug fixes
 4. **Keep it simple** - Small, focused commits are easier to review
 
+## Quick Feature Test
+
+Try the XPath feature:
+```python
+from shconfparser import Parser
+
+p = Parser(output_format='yaml')
+data = p.read('data/shrun.txt')
+tree = p.parse_tree(data)
+
+# Simple query
+result = p.xpath('/hostname')
+print(f"Hostname: {result.data}")
+
+# Query with context
+result = p.xpath('/interface/*/duplex', context='partial')
+for match in result.matches:
+    print(match)  # Shows which interface
+```
+
 Happy coding! 🚀
