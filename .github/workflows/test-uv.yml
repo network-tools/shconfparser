@@ -19,7 +19,7 @@ jobs:
         python-version: "3.13"
 
     - name: Install dependencies
-      run: uv sync --extra dev
+      run: uv sync --group dev
 
     - name: Run ruff linter
       run: uv run ruff check .
