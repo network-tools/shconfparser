@@ -4,11 +4,9 @@ This module provides XPath-like querying capabilities for parsed network
 configurations in YAML format (dict structures).
 """
 
-import fnmatch
 import re
-from typing import Any, Dict, List, Optional, Tuple, Union
+from typing import Any, Dict, List, Optional, Tuple
 
-from .exceptions import SearchError
 from .models import XPathResult
 
 
@@ -35,7 +33,7 @@ class XPath:
         """Return string representation."""
         return "XPath()"
 
-    def query(self, tree: Dict[str, Any], query: str, context: str = 'none') -> XPathResult:
+    def query(self, tree: Dict[str, Any], query: str, context: str = "none") -> XPathResult:
         """Execute XPath-style query on dict tree.
 
         Args:
@@ -63,7 +61,7 @@ class XPath:
             )
 
         # Validate query format
-        if not (query.startswith('/') or query.startswith('//')):
+        if not (query.startswith("/") or query.startswith("//")):
             return XPathResult(
                 success=False,
                 error="XPath query must start with / or //",
@@ -78,7 +76,7 @@ class XPath:
             )
 
         # Validate context parameter
-        if context not in ('none', 'partial', 'full'):
+        if context not in ("none", "partial", "full"):
             return XPathResult(
                 success=False,
                 error=f"Invalid context '{context}'. Must be 'none', 'partial', or 'full'",
@@ -110,7 +108,7 @@ class XPath:
 
             if matches:
                 # Apply context if needed
-                if context != 'none' and paths:
+                if context != "none" and paths:
                     final_matches = [
                         self._build_context(match, path_components, context)
                         for match, path_components in zip(matches, paths)
@@ -159,17 +157,14 @@ class XPath:
         For 'full' context:
             Returns: {'interface': {'FastEthernet0/0': {'ip': match}}}
         """
-        if context_type == 'none' or not path:
+        if context_type == "none" or not path:
             return match
 
-        if context_type == 'partial':
-            # For partial context, skip the first component (container level)
-            # This shows from the wildcard/predicate match point
-            if len(path) > 1:
-                path_to_use = path[1:]  # Skip first level (e.g., 'interface')
-            else:
-                path_to_use = path
-        else:  # 'full'
+        # For partial context, skip the first component (container level)
+        # This shows from the wildcard/predicate match point
+        if context_type == "partial":  # noqa: SIM108
+            path_to_use = path[1:] if len(path) > 1 else path
+        else:
             path_to_use = path
 
         # Build nested dict from path

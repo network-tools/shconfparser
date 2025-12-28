@@ -1,7 +1,6 @@
 """Tests for XPath functionality on YAML dict structures."""
 
 import unittest
-from collections import OrderedDict
 
 from shconfparser import Parser, XPathResult
 
@@ -135,7 +134,7 @@ class TestXPath(unittest.TestCase):
         """Test XPath on JSON format (should return error)."""
         parser = Parser(output_format="json")
         lines = parser.read("data/shrun.txt")
-        tree = parser.parse_tree(lines)
+        parser.parse_tree(lines)
         result = parser.xpath("/hostname")
         # XPath only works with YAML format
         self.assertFalse(result.success)
@@ -206,9 +205,7 @@ class TestXPath(unittest.TestCase):
         self.assertTrue(result.success)
         # Should show which FastEthernet interface
         self.assertIsInstance(result.data, dict)
-        self.assertTrue(
-            "FastEthernet0/0" in result.data or "FastEthernet0/1" in result.data
-        )
+        self.assertTrue("FastEthernet0/0" in result.data or "FastEthernet0/1" in result.data)
 
     def test_context_invalid(self):
         """Test invalid context parameter."""

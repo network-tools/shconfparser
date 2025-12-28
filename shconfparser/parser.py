@@ -354,7 +354,9 @@ class Parser:
 
         return result
 
-    def xpath(self, query: str, tree: Optional[Dict[str, Any]] = None, context: str = 'none') -> XPathResult:
+    def xpath(
+        self, query: str, tree: Optional[Dict[str, Any]] = None, context: str = "none"
+    ) -> XPathResult:
         """Execute XPath-style query on YAML configuration tree.
 
         XPath queries work on YAML format (dict) trees. If tree is not provided,
@@ -397,7 +399,7 @@ class Parser:
             )
 
         # XPath only works with YAML format (dict, not OrderedDict)
-        if self.output_format != 'yaml':
+        if self.output_format != "yaml":
             return XPathResult(
                 success=False,
                 error=f"XPath queries only work with output_format='yaml', current format is '{self.output_format}'",
@@ -407,8 +409,7 @@ class Parser:
         # Ensure search_tree is a dict
         if not isinstance(search_tree, dict):
             self.logger.warning(
-                "XPath requires dict structure. "
-                f"Got {type(search_tree).__name__}."
+                "XPath requires dict structure. " f"Got {type(search_tree).__name__}."
             )
             return XPathResult(
                 success=False,
