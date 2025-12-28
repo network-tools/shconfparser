@@ -67,13 +67,13 @@ class TreeParser:
                 return temp_dict
 
             if next_node["level"] == level:
-                temp_dict[node["key"]] = None
+                temp_dict[node["key"]] = ""
             elif next_node["level"] > level:
                 temp_dict[node["key"]] = self._convert_to_dict(
                     tree[i + 1 :], level=next_node["level"]
                 )
             else:
-                temp_dict[node["key"]] = None
+                temp_dict[node["key"]] = ""
                 return temp_dict
         return temp_dict
 

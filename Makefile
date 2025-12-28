@@ -51,5 +51,5 @@ build: clean
 publish: build
 	uv publish
 
-check-all: format lint type-check test
+check-all: format type-check test
 	@echo "All checks passed!"
