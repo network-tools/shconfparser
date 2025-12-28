@@ -10,6 +10,7 @@ from typing import Any, Dict, List, Optional, Union
 
 # Type aliases for complex structures
 TreeData = OrderedDict[str, Union[str, "TreeData"]]
+TreeDataOrDict = Union[TreeData, Dict[str, Any]]  # For format flexibility
 TableRow = Dict[str, str]
 TableData = List[TableRow]
 
@@ -145,6 +146,7 @@ class XPathResult:
         count: Number of matches
         query: Original XPath query string
         error: Error message if query failed
+        paths: List of paths to each match (when context tracking enabled)
     """
 
     success: bool
@@ -153,6 +155,7 @@ class XPathResult:
     count: int = 0
     query: str = ""
     error: Optional[str] = None
+    paths: List[List[str]] = field(default_factory=list)
 
     def __bool__(self) -> bool:
         """Allow boolean evaluation of result."""

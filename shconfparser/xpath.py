@@ -1,34 +1,30 @@
-"""XPath-like query engine for parsed configuration trees.
+"""XPath-style query engine for YAML/dict configuration trees with context tracking.
 
-This module provides XPath-style querying capabilities for navigating
-and searching through parsed network configuration data structures.
+This module provides XPath-like querying capabilities for parsed network
+configurations in YAML format (dict structures).
 """
 
-import logging
+import fnmatch
 import re
-from collections import OrderedDict
-from typing import Any, List
+from typing import Any, Dict, List, Optional, Tuple, Union
 
 from .exceptions import SearchError
-from .models import TreeData, XPathResult
-
-logger = logging.getLogger(__name__)
+from .models import XPathResult
 
 
 class XPath:
-    """XPath-like query engine for configuration trees.
+    """XPath-style query engine for YAML dict structures.
 
-    Supports:
-    - Absolute paths: /interface/GigabitEthernet0-0-1/ip/address
-    - Relative paths: //ip/address (find anywhere)
-    - Wildcards: /interface/*/ip
-    - Get all keys: /interface/* (list all interfaces)
-    - Predicates: /interface[GigabitEthernet*]
+    Supports NSO-style XPath queries on clean hierarchical dict structures
+    with optional context tracking for wildcard matches.
 
-    Example:
+    Examples:
         >>> xpath = XPath()
-        >>> results = xpath.query(tree, '//ip/address')
-        >>> result = xpath.query(tree, '/interface/GigabitEthernet0-0-1')
+        >>> tree = {'interface': {'FastEthernet0/0': {'duplex': 'auto'}}}
+        >>> result = xpath.query(tree, '/interface/FastEthernet0/0/duplex')
+        >>> result.data  # 'auto'
+        >>> result = xpath.query(tree, '/interface/*/duplex', context='partial')
+        >>> result.matches  # [{'FastEthernet0/0': {'duplex': 'auto'}}]
     """
 
     def __init__(self) -> None:
@@ -39,254 +35,325 @@ class XPath:
         """Return string representation."""
         return "XPath()"
 
-    def query(self, tree: TreeData, path: str) -> XPathResult:
-        """Execute XPath query on configuration tree.
+    def query(self, tree: Dict[str, Any], query: str, context: str = 'none') -> XPathResult:
+        """Execute XPath-style query on dict tree.
 
         Args:
-            tree: Parsed configuration tree (OrderedDict)
-            path: XPath-style query string
+            tree: Dictionary tree to search
+            query: XPath query string
+            context: How much context to include in matches:
+                - 'none': Just matched values (default)
+                - 'partial': From wildcard match point to value
+                - 'full': Full tree hierarchy from root
 
         Returns:
-            XPathResult with found data and metadata
+            XPathResult with matches and metadata
 
-        Raises:
-            SearchError: If path syntax is invalid
+        Examples:
+            >>> result = xpath.query(tree, '/interface/FastEthernet0/0/duplex')
+            >>> result = xpath.query(tree, '//duplex', context='partial')
+            >>> result = xpath.query(tree, '/interface/*/duplex', context='full')
+            >>> result = xpath.query(tree, '/interface[FastEthernet*]', context='partial')
         """
-        if not path:
-            raise SearchError("XPath query cannot be empty")
+        if not query:
+            return XPathResult(
+                success=False,
+                error="XPath query cannot be empty",
+                query=query,
+            )
 
-        if not isinstance(tree, OrderedDict):
-            raise SearchError("Tree must be an OrderedDict")
+        # Validate query format
+        if not (query.startswith('/') or query.startswith('//')):
+            return XPathResult(
+                success=False,
+                error="XPath query must start with / or //",
+                query=query,
+            )
 
-        # Normalize path
-        path = path.strip()
+        if not isinstance(tree, dict):
+            return XPathResult(
+                success=False,
+                error=f"Tree must be a dict, got {type(tree).__name__}",
+                query=query,
+            )
 
-        # Handle different path types
-        if path.startswith("//"):
-            # Recursive search
-            return self._search_recursive(tree, path[2:])
-        elif path.startswith("/"):
-            # Absolute path
-            return self._search_absolute(tree, path[1:])
-        else:
-            # Relative path (treat as absolute)
-            return self._search_absolute(tree, path)
+        # Validate context parameter
+        if context not in ('none', 'partial', 'full'):
+            return XPathResult(
+                success=False,
+                error=f"Invalid context '{context}'. Must be 'none', 'partial', or 'full'",
+                query=query,
+            )
 
-    def _search_absolute(self, tree: TreeData, path: str) -> XPathResult:
-        """Search using absolute path from root.
+        try:
+            # Handle root path
+            if query == "/":
+                return XPathResult(
+                    success=True,
+                    data=tree,
+                    matches=[tree],
+                    count=1,
+                    query=query,
+                    paths=[[]],
+                )
 
-        Args:
-            tree: Configuration tree
-            path: Path without leading /
+            # Parse query
+            is_recursive = query.startswith("//")
+            path = query.lstrip("/")
 
-        Returns:
-            XPathResult with matches
-        """
-        if not path:
-            return XPathResult(success=True, data=tree, matches=[tree], count=1, query=f"/{path}")
-
-        parts = self._split_path(path)
-        matches = self._traverse_path(tree, parts, [])
-
-        return XPathResult(
-            success=len(matches) > 0,
-            data=matches[0] if matches else None,
-            matches=matches,
-            count=len(matches),
-            query=f"/{path}",
-        )
-
-    def _search_recursive(self, tree: TreeData, path: str) -> XPathResult:
-        """Search recursively through entire tree.
-
-        Args:
-            tree: Configuration tree
-            path: Path to search for
-
-        Returns:
-            XPathResult with all matches
-        """
-        parts = self._split_path(path)
-        all_matches: List[Any] = []
-
-        def recurse(node: Any, depth: int = 0) -> None:
-            """Recursively search tree for matching paths."""
-            if not isinstance(node, OrderedDict):
-                return
-
-            # Try to match from this node
-            matches = self._traverse_path(node, parts, [])
-            all_matches.extend(matches)
-
-            # Recurse into children
-            for value in node.values():
-                if isinstance(value, OrderedDict):
-                    recurse(value, depth + 1)
-
-        recurse(tree)
-
-        return XPathResult(
-            success=len(all_matches) > 0,
-            data=all_matches[0] if all_matches else None,
-            matches=all_matches,
-            count=len(all_matches),
-            query=f"//{path}",
-        )
-
-    def _split_path(self, path: str) -> List[str]:
-        """Split path into components.
-
-        Args:
-            path: XPath string
-
-        Returns:
-            List of path components
-        """
-        # Handle empty path
-        if not path:
-            return []
-
-        # Split by / but preserve predicates [...]
-        parts = []
-        current = ""
-        in_predicate = False
-
-        for char in path:
-            if char == "[":
-                in_predicate = True
-                current += char
-            elif char == "]":
-                in_predicate = False
-                current += char
-            elif char == "/" and not in_predicate:
-                if current:
-                    parts.append(current)
-                current = ""
+            if is_recursive:
+                # Recursive search with path tracking
+                matches, paths = self._search_recursive_with_paths(tree, path, [])
             else:
-                current += char
+                # Absolute path with path tracking
+                matches, paths = self._search_absolute_with_paths(tree, path, [])
 
-        if current:
-            parts.append(current)
+            if matches:
+                # Apply context if needed
+                if context != 'none' and paths:
+                    final_matches = [
+                        self._build_context(match, path_components, context)
+                        for match, path_components in zip(matches, paths)
+                    ]
+                else:
+                    final_matches = matches
 
-        return parts
+                return XPathResult(
+                    success=True,
+                    data=final_matches[0] if final_matches else None,
+                    matches=final_matches,
+                    count=len(final_matches),
+                    query=query,
+                    paths=paths,
+                )
+            else:
+                return XPathResult(
+                    success=False,
+                    data=None,
+                    matches=[],
+                    count=0,
+                    query=query,
+                    paths=[],
+                )
 
-    def _traverse_path(
-        self, tree: TreeData, parts: List[str], current_path: List[str]
-    ) -> List[Any]:
-        """Traverse tree following path components.
+        except Exception as e:
+            return XPathResult(
+                success=False,
+                error=f"XPath query failed: {str(e)}",
+                query=query,
+            )
+
+    def _build_context(self, match: Any, path: List[str], context_type: str) -> Any:
+        """Build context structure around a match.
 
         Args:
-            tree: Current node in tree
-            parts: Remaining path components
-            current_path: Path traversed so far
+            match: The matched value
+            path: Full path components from root to match
+            context_type: 'partial' or 'full'
 
         Returns:
-            List of matches
+            Dict with context hierarchy or original match value
+
+        For 'partial' context with path ['interface', 'FastEthernet0/0', 'ip']:
+            Returns: {'FastEthernet0/0': {'ip': match}}
+        For 'full' context:
+            Returns: {'interface': {'FastEthernet0/0': {'ip': match}}}
         """
-        if not parts:
-            return [tree]
+        if context_type == 'none' or not path:
+            return match
 
-        if not isinstance(tree, OrderedDict):
-            return []
+        if context_type == 'partial':
+            # For partial context, skip the first component (container level)
+            # This shows from the wildcard/predicate match point
+            if len(path) > 1:
+                path_to_use = path[1:]  # Skip first level (e.g., 'interface')
+            else:
+                path_to_use = path
+        else:  # 'full'
+            path_to_use = path
 
-        part = parts[0]
-        remaining = parts[1:]
-        matches: List[Any] = []
+        # Build nested dict from path
+        if not path_to_use:
+            return match
+
+        result = match
+        for component in reversed(path_to_use):
+            result = {component: result}
+
+        return result
+
+    def _search_absolute_with_paths(
+        self, tree: Dict[str, Any], path: str, current_path: List[str]
+    ) -> Tuple[List[Any], List[List[str]]]:
+        """Search using absolute path, tracking paths to matches.
+
+        Args:
+            tree: Current dict to search
+            path: Path segments (without leading /)
+            current_path: Path components from root to current position
+
+        Returns:
+            Tuple of (matches list, paths list)
+        """
+        segments = self._parse_path(path)
+
+        if not segments:
+            return [tree], [current_path]
+
+        return self._traverse_path_with_tracking(tree, segments, current_path)
+
+    def _search_recursive_with_paths(
+        self, tree: Dict[str, Any], pattern: str, current_path: List[str]
+    ) -> Tuple[List[Any], List[List[str]]]:
+        """Recursively search for pattern anywhere in tree, tracking paths.
+
+        Args:
+            tree: Current dict to search
+            pattern: Pattern to match
+            current_path: Path components from root to current position
+
+        Returns:
+            Tuple of (matches list, paths list)
+        """
+        all_matches = []
+        all_paths = []
+
+        # Try to match at current level
+        current_matches, current_match_paths = self._search_absolute_with_paths(
+            tree, pattern, current_path
+        )
+        all_matches.extend(current_matches)
+        all_paths.extend(current_match_paths)
+
+        # Recursively search in nested dicts
+        for key, value in tree.items():
+            if isinstance(value, dict):
+                nested_path = current_path + [key]
+                nested_matches, nested_paths = self._search_recursive_with_paths(
+                    value, pattern, nested_path
+                )
+                all_matches.extend(nested_matches)
+                all_paths.extend(nested_paths)
+
+        return all_matches, all_paths
+
+    def _parse_path(self, path: str) -> List[Tuple[str, Optional[str]]]:
+        """Parse path into segments with predicates.
+
+        Args:
+            path: Path string like "interface/FastEthernet0/0" or "interface[FastEthernet0/0]"
+
+        Returns:
+            List of (segment, predicate) tuples
+        """
+        segments = []
+        predicate_pattern = r"([^/\[]+)\[([^\]]+)\]"
+
+        parts = []
+        current_pos = 0
+
+        while current_pos < len(path):
+            match = re.search(predicate_pattern, path[current_pos:])
+
+            if match:
+                before = path[current_pos : current_pos + match.start()]
+                if before:
+                    parts.extend([p for p in before.split("/") if p])
+
+                segment = match.group(1)
+                predicate = match.group(2)
+                segments.append((segment, predicate))
+
+                current_pos += match.end()
+
+                if current_pos < len(path) and path[current_pos] == "/":
+                    current_pos += 1
+            else:
+                remaining = path[current_pos:]
+                parts.extend([p for p in remaining.split("/") if p])
+                break
+
+        for part in parts:
+            if part:
+                segments.append((part, None))
+
+        return segments
+
+    def _traverse_path_with_tracking(
+        self,
+        tree: Dict[str, Any],
+        segments: List[Tuple[str, Optional[str]]],
+        current_path: List[str],
+    ) -> Tuple[List[Any], List[List[str]]]:
+        """Traverse path through tree, tracking paths to matches.
+
+        Args:
+            tree: Current dict
+            segments: List of (segment, predicate) tuples
+            current_path: Path components from root to current position
+
+        Returns:
+            Tuple of (matches list, paths list)
+        """
+        if not segments:
+            return [tree], [current_path]
+
+        current_segment, predicate = segments[0]
+        remaining_segments = segments[1:]
+
+        all_matches = []
+        all_paths = []
 
         # Handle wildcards
-        if part == "*":
-            # Return all keys at this level if no more parts
-            if not remaining:
-                return list(tree.keys())
-            # Otherwise traverse all children
+        if "*" in current_segment:
+            pattern = current_segment.replace("*", ".*")
             for key, value in tree.items():
-                if isinstance(value, OrderedDict):
-                    child_matches = self._traverse_path(value, remaining, current_path + [key])
-                    matches.extend(child_matches)
-                elif not remaining:  # Leaf node
-                    matches.append(value)
-            return matches
+                if re.match(pattern, str(key), re.IGNORECASE):
+                    new_path = current_path + [key]
+                    if remaining_segments:
+                        if isinstance(value, dict):
+                            nested_matches, nested_paths = self._traverse_path_with_tracking(
+                                value, remaining_segments, new_path
+                            )
+                            all_matches.extend(nested_matches)
+                            all_paths.extend(nested_paths)
+                    else:
+                        all_matches.append(value)
+                        all_paths.append(new_path)
 
-        # Handle predicates [pattern]
-        if "[" in part:
-            key_pattern, predicate = self._parse_predicate(part)
-
-            # Check if key exists in tree
-            if key_pattern in tree:
-                value = tree[key_pattern]
-
-                # If value is OrderedDict, filter its children by predicate
-                if isinstance(value, OrderedDict):
-                    for child_key, child_value in value.items():
-                        if self._match_key(child_key, predicate):
-                            if not remaining:
-                                matches.append(child_value)
-                            elif isinstance(child_value, OrderedDict):
-                                child_matches = self._traverse_path(
-                                    child_value, remaining, current_path + [key_pattern, child_key]
+        elif predicate:
+            # Handle predicate: /interface[FastEthernet0/0]
+            if current_segment in tree and isinstance(tree[current_segment], dict):
+                container = tree[current_segment]
+                predicate_pattern = predicate.replace("*", ".*")
+                for key, value in container.items():
+                    if re.match(predicate_pattern, str(key), re.IGNORECASE):
+                        new_path = current_path + [current_segment, key]
+                        if remaining_segments:
+                            if isinstance(value, dict):
+                                nested_matches, nested_paths = self._traverse_path_with_tracking(
+                                    value, remaining_segments, new_path
                                 )
-                                matches.extend(child_matches)
-            return matches
+                                all_matches.extend(nested_matches)
+                                all_paths.extend(nested_paths)
+                        else:
+                            all_matches.append(value)
+                            all_paths.append(new_path)
 
-        # Direct key lookup
-        if part in tree:
-            value = tree[part]
-            if not remaining:
-                return [value]
-            if isinstance(value, OrderedDict):
-                return self._traverse_path(value, remaining, current_path + [part])
+        else:
+            # Exact match
+            if current_segment in tree:
+                value = tree[current_segment]
+                new_path = current_path + [current_segment]
+                if remaining_segments:
+                    if isinstance(value, dict):
+                        nested_matches, nested_paths = self._traverse_path_with_tracking(
+                            value, remaining_segments, new_path
+                        )
+                        all_matches.extend(nested_matches)
+                        all_paths.extend(nested_paths)
+                else:
+                    all_matches.append(value)
+                    all_paths.append(new_path)
 
-        # Try pattern matching on keys
-        for key, value in tree.items():
-            if self._match_key(key, part):
-                if not remaining:
-                    matches.append(value)
-                elif isinstance(value, OrderedDict):
-                    child_matches = self._traverse_path(value, remaining, current_path + [key])
-                    matches.extend(child_matches)
-
-        return matches
-
-    def _parse_predicate(self, part: str) -> tuple[str, str]:
-        """Parse predicate from path component.
-
-        Args:
-            part: Path component with predicate like 'interface[Gig*]'
-
-        Returns:
-            Tuple of (key_pattern, predicate_pattern)
-        """
-        match = re.match(r"^([^\[]+)\[([^\]]+)\]$", part)
-        if match:
-            return match.group(1), match.group(2)
-        return part, ""
-
-    def _check_predicate(self, key: str, _value: Any, predicate: str) -> bool:
-        """Check if key/value matches predicate.
-
-        Args:
-            key: Dictionary key
-            _value: Dictionary value (unused but kept for future use)
-            predicate: Predicate pattern
-
-        Returns:
-            True if matches
-        """
-        if not predicate:
-            return True
-        return self._match_key(key, predicate)
-
-    def _match_key(self, key: str, pattern: str) -> bool:
-        """Match key against pattern with wildcard support.
-
-        Args:
-            key: Dictionary key to match
-            pattern: Pattern (supports * wildcard)
-
-        Returns:
-            True if key matches pattern
-        """
-        # Convert glob pattern to regex
-        regex_pattern = pattern.replace("*", ".*")
-        regex_pattern = f"^{regex_pattern}$"
-        return bool(re.match(regex_pattern, key, re.IGNORECASE))
+        return all_matches, all_paths

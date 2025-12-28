@@ -1,435 +1,241 @@
-"""Tests for XPath query functionality."""
+"""Tests for XPath functionality on YAML dict structures."""
 
+import unittest
 from collections import OrderedDict
 
-import pytest
-
-from shconfparser.exceptions import SearchError
-from shconfparser.parser import Parser
-from shconfparser.xpath import XPath
+from shconfparser import Parser, XPathResult
 
 
-@pytest.fixture
-def sample_tree():
-    """Create a sample configuration tree for testing."""
-    tree = OrderedDict(
-        [
-            (
-                "interface",
-                OrderedDict(
-                    [
-                        (
-                            "GigabitEthernet0-0-1",
-                            OrderedDict(
-                                [
-                                    ("description", "WAN Interface"),
-                                    (
-                                        "ip",
-                                        OrderedDict(
-                                            [
-                                                ("address", "192.168.1.1 255.255.255.0"),
-                                                ("nat", "outside"),
-                                            ]
-                                        ),
-                                    ),
-                                    ("shutdown", ""),
-                                ]
-                            ),
-                        ),
-                        (
-                            "GigabitEthernet0-0-2",
-                            OrderedDict(
-                                [
-                                    ("description", "LAN Interface"),
-                                    (
-                                        "ip",
-                                        OrderedDict(
-                                            [
-                                                ("address", "10.0.0.1 255.255.255.0"),
-                                                ("nat", "inside"),
-                                            ]
-                                        ),
-                                    ),
-                                ]
-                            ),
-                        ),
-                        (
-                            "Loopback0",
-                            OrderedDict(
-                                [
-                                    ("description", "Loopback"),
-                                    (
-                                        "ip",
-                                        OrderedDict(
-                                            [
-                                                ("address", "1.1.1.1 255.255.255.255"),
-                                            ]
-                                        ),
-                                    ),
-                                ]
-                            ),
-                        ),
-                    ]
-                ),
-            ),
-            ("hostname", "Router1"),
-            (
-                "router",
-                OrderedDict(
-                    [
-                        (
-                            "bgp",
-                            OrderedDict(
-                                [
-                                    (
-                                        "65000",
-                                        OrderedDict(
-                                            [
-                                                (
-                                                    "neighbor",
-                                                    OrderedDict(
-                                                        [
-                                                            (
-                                                                "10.0.0.2",
-                                                                OrderedDict(
-                                                                    [
-                                                                        ("remote-as", "65001"),
-                                                                    ]
-                                                                ),
-                                                            ),
-                                                        ]
-                                                    ),
-                                                ),
-                                            ]
-                                        ),
-                                    ),
-                                ]
-                            ),
-                        ),
-                    ]
-                ),
-            ),
-        ]
-    )
-    return tree
+class TestXPath(unittest.TestCase):
+    """Test XPath queries on YAML format data."""
 
+    def setUp(self):
+        """Set up parser with YAML format and parse test data."""
+        self.parser = Parser(output_format="yaml")
+        lines = self.parser.read("data/shrun.txt")
+        self.tree = self.parser.parse_tree(lines)
 
-class TestXPath:
-    """Test XPath query engine."""
+    def test_xpath_result_dataclass(self):
+        """Test XPathResult dataclass structure."""
+        result = self.parser.xpath("/hostname")
+        self.assertIsInstance(result, XPathResult)
+        self.assertTrue(hasattr(result, "success"))
+        self.assertTrue(hasattr(result, "data"))
+        self.assertTrue(hasattr(result, "matches"))
+        self.assertTrue(hasattr(result, "count"))
+        self.assertTrue(hasattr(result, "query"))
+        self.assertTrue(hasattr(result, "error"))
 
-    def test_xpath_init(self):
-        """Test XPath initialization."""
-        xpath = XPath()
-        assert repr(xpath) == "XPath()"
-
-    def test_empty_query(self, sample_tree):
-        """Test empty query raises error."""
-        xpath = XPath()
-        with pytest.raises(SearchError, match="XPath query cannot be empty"):
-            xpath.query(sample_tree, "")
-
-    def test_invalid_tree_type(self):
-        """Test invalid tree type raises error."""
-        xpath = XPath()
-        with pytest.raises(SearchError, match="Tree must be an OrderedDict"):
-            xpath.query({"key": "value"}, "/test")
-
-    def test_absolute_path_single_key(self, sample_tree):
-        """Test absolute path to single key."""
-        xpath = XPath()
-        result = xpath.query(sample_tree, "/hostname")
-        assert result.success
-        assert result.data == "Router1"
-        assert result.count == 1
-        assert result.query == "/hostname"
-
-    def test_absolute_path_nested(self, sample_tree):
-        """Test absolute path to nested key."""
-        xpath = XPath()
-        result = xpath.query(sample_tree, "/interface/GigabitEthernet0-0-1/ip/address")
-        assert result.success
-        assert result.data == "192.168.1.1 255.255.255.0"
-        assert result.count == 1
-
-    def test_absolute_path_dict(self, sample_tree):
-        """Test absolute path returning dictionary."""
-        xpath = XPath()
-        result = xpath.query(sample_tree, "/interface/GigabitEthernet0-0-1/ip")
-        assert result.success
-        assert isinstance(result.data, OrderedDict)
-        assert "address" in result.data
-        assert "nat" in result.data
-
-    def test_absolute_path_not_found(self, sample_tree):
-        """Test absolute path that doesn't exist."""
-        xpath = XPath()
-        result = xpath.query(sample_tree, "/interface/GigabitEthernet0-0-99")
-        assert not result.success
-        assert result.count == 0
-
-    def test_recursive_search(self, sample_tree):
-        """Test recursive search finds all matches."""
-        xpath = XPath()
-        result = xpath.query(sample_tree, "//address")
-        assert result.success
-        assert result.count == 3  # Three interfaces with addresses
-        assert "192.168.1.1" in result.matches[0]
-
-    def test_recursive_search_nested(self, sample_tree):
-        """Test recursive search for nested path."""
-        xpath = XPath()
-        result = xpath.query(sample_tree, "//ip/address")
-        assert result.success
-        assert result.count == 3
-
-    def test_wildcard_single_level(self, sample_tree):
-        """Test wildcard at single level."""
-        xpath = XPath()
-        result = xpath.query(sample_tree, "/interface/*")
-        # Should return interface names
-        assert result.success
-        assert result.count == 3
-        assert "GigabitEthernet0-0-1" in result.matches
-        assert "GigabitEthernet0-0-2" in result.matches
-        assert "Loopback0" in result.matches
-
-    def test_wildcard_with_continuation(self, sample_tree):
-        """Test wildcard with path continuation."""
-        xpath = XPath()
-        result = xpath.query(sample_tree, "/interface/*/description")
-        assert result.success
-        assert result.count == 3
-        assert "WAN Interface" in result.matches
-        assert "LAN Interface" in result.matches
-
-    def test_wildcard_nested(self, sample_tree):
-        """Test wildcard in nested path."""
-        xpath = XPath()
-        result = xpath.query(sample_tree, "/interface/*/ip/address")
-        assert result.success
-        assert result.count == 3
-
-    def test_predicate_exact_match(self, sample_tree):
-        """Test predicate with exact match."""
-        xpath = XPath()
-        result = xpath.query(sample_tree, "/interface[GigabitEthernet0-0-1]")
-        assert result.success
-        assert result.count == 1
-        assert isinstance(result.data, OrderedDict)
-
-    def test_predicate_wildcard(self, sample_tree):
-        """Test predicate with wildcard pattern."""
-        xpath = XPath()
-        result = xpath.query(sample_tree, "/interface[GigabitEthernet*]/ip/address")
-        assert result.success
-        assert result.count == 2  # Two GigabitEthernet interfaces
-        assert "192.168.1.1" in result.matches[0]
-
-    def test_predicate_wildcard_prefix(self, sample_tree):
-        """Test predicate with wildcard prefix."""
-        xpath = XPath()
-        result = xpath.query(sample_tree, "/interface[*0]/ip/address")
-        assert result.success
-        assert result.count == 1  # Only Loopback0
-
-    def test_root_path(self, sample_tree):
-        """Test root path returns entire tree."""
-        xpath = XPath()
-        result = xpath.query(sample_tree, "/")
-        assert result.success
-        assert result.data == sample_tree
-
-    def test_relative_path_treated_as_absolute(self, sample_tree):
-        """Test relative path (no leading /) treated as absolute."""
-        xpath = XPath()
-        result = xpath.query(sample_tree, "hostname")
-        assert result.success
-        assert result.data == "Router1"
-
-    def test_case_insensitive_matching(self, sample_tree):
-        """Test pattern matching is case insensitive."""
-        xpath = XPath()
-        result = xpath.query(sample_tree, "/interface[gigabit*]")
-        assert result.success
-        assert result.count == 2
-
-
-class TestParserXPath:
-    """Test XPath integration with Parser class."""
-
-    def test_parser_xpath_with_stored_tree(self, sample_tree):
-        """Test Parser.xpath uses stored tree."""
-        parser = Parser()
-        parser.data = sample_tree  # Simulate parsed tree
-
-        result = parser.xpath("//ip/address")
-        assert result.success
-        assert result.count == 3
-
-    def test_parser_xpath_with_custom_tree(self, sample_tree):
-        """Test Parser.xpath with custom tree parameter."""
-        parser = Parser()
-        # Don't set parser.data
-
-        result = parser.xpath("//ip/address", tree=sample_tree)
-        assert result.success
-        assert result.count == 3
-
-    def test_parser_xpath_no_tree(self):
-        """Test Parser.xpath without tree data."""
-        parser = Parser()
-
-        result = parser.xpath("//test")
-        assert not result.success
-        assert "No tree data available" in result.error
-
-    def test_parser_xpath_invalid_query(self, sample_tree):
-        """Test Parser.xpath with invalid query."""
-        parser = Parser()
-        parser.data = sample_tree
-
-        result = parser.xpath("")
-        assert not result.success
-        assert result.error is not None
-
-    def test_parser_xpath_result_attributes(self, sample_tree):
-        """Test XPathResult attributes."""
-        parser = Parser()
-        parser.data = sample_tree
-
-        result = parser.xpath("/hostname")
-        assert result.success
-        assert result.data == "Router1"
-        assert result.count == 1
-        assert len(result.matches) == 1
-        assert result.query == "/hostname"
-        assert result.error is None
-
-    def test_parser_xpath_boolean_evaluation(self, sample_tree):
+    def test_xpath_result_bool(self):
         """Test XPathResult boolean evaluation."""
-        parser = Parser()
-        parser.data = sample_tree
+        result_success = self.parser.xpath("/hostname")
+        result_failure = self.parser.xpath("/nonexistent")
+        self.assertTrue(result_success)
+        self.assertFalse(result_failure)
 
-        result = parser.xpath("/hostname")
-        assert result  # Should evaluate to True
+    def test_simple_absolute_path(self):
+        """Test simple absolute path query."""
+        result = self.parser.xpath("/hostname")
+        self.assertTrue(result.success)
+        self.assertEqual(result.data, "R1")
+        self.assertEqual(result.count, 1)
+        self.assertEqual(result.query, "/hostname")
 
-        result = parser.xpath("/nonexistent")
-        assert not result  # Should evaluate to False
+    def test_nested_absolute_path(self):
+        """Test nested absolute path query."""
+        result = self.parser.xpath("/interface/FastEthernet0/0/duplex")
+        # Should fail because FastEthernet0/0 requires predicate syntax
+        self.assertFalse(result.success)
 
-    def test_parser_workflow_integration(self, tmp_path):
-        """Test complete workflow with file reading and parsing."""
-        # Create test config file
-        config_file = tmp_path / "config.txt"
-        config_file.write_text(
-            """interface GigabitEthernet0/0/1
-  description WAN
-  ip address 192.168.1.1 255.255.255.0
-interface GigabitEthernet0/0/2
-  description LAN
-  ip address 10.0.0.1 255.255.255.0
-hostname TestRouter
-"""
-        )
+    def test_predicate_with_slash(self):
+        """Test predicate syntax with identifier containing slash."""
+        result = self.parser.xpath("/interface[FastEthernet0/0]")
+        self.assertTrue(result.success)
+        self.assertIsInstance(result.data, dict)
+        self.assertIn("duplex", result.data)
+        self.assertIn("ip", result.data)
 
-        parser = Parser()
-        data = parser.read(str(config_file))
-        parser.parse_tree(data)
+    def test_predicate_with_continuation(self):
+        """Test predicate followed by path continuation."""
+        result = self.parser.xpath("/interface[FastEthernet0/0]/duplex")
+        self.assertTrue(result.success)
+        self.assertEqual(result.data, "auto")
 
-        # Now use xpath - note the tree structure has full lines as keys
-        result = parser.xpath("//description WAN")
-        assert result.success
-        assert result.count == 1
+    def test_deep_nested_with_predicate(self):
+        """Test deep nested path with predicate."""
+        result = self.parser.xpath("/interface[FastEthernet0/0]/ip/address")
+        self.assertTrue(result.success)
+        self.assertEqual(result.data, "1.1.1.1 255.255.255.0")
 
-    def test_xpath_chaining(self, sample_tree):
-        """Test chaining multiple xpath queries."""
-        parser = Parser()
-        parser.data = sample_tree
+    def test_recursive_search(self):
+        """Test recursive search (// operator)."""
+        result = self.parser.xpath("//duplex")
+        self.assertTrue(result.success)
+        self.assertEqual(result.count, 2)
+        self.assertIsInstance(result.matches, list)
+        self.assertEqual(len(result.matches), 2)
+        self.assertIn("auto", result.matches)
 
-        # First query
-        result1 = parser.xpath("/interface/GigabitEthernet0-0-1")
-        assert result1.success
+    def test_recursive_search_single_result(self):
+        """Test recursive search returning single result."""
+        result = self.parser.xpath("//hostname")
+        self.assertTrue(result.success)
+        self.assertEqual(result.count, 1)
+        self.assertEqual(result.data, "R1")
 
-        # Query on result
-        result2 = parser.xpath("/ip/address", tree=result1.data)
-        assert result2.success
-        assert "192.168.1.1" in result2.data
+    def test_wildcard_in_path(self):
+        """Test wildcard (*) in path."""
+        result = self.parser.xpath("/interface/*/duplex")
+        self.assertTrue(result.success)
+        self.assertEqual(result.count, 2)
+        self.assertIsInstance(result.matches, list)
+        self.assertEqual(len(result.matches), 2)
 
+    def test_wildcard_in_predicate(self):
+        """Test wildcard pattern in predicate."""
+        result = self.parser.xpath("/interface[FastEthernet*]/duplex")
+        self.assertTrue(result.success)
+        self.assertEqual(result.count, 2)
+        self.assertIsInstance(result.matches, list)
 
-class TestXPathEdgeCases:
-    """Test edge cases and complex scenarios."""
+    def test_predicate_pattern_matching(self):
+        """Test predicate with partial pattern match."""
+        result = self.parser.xpath("/interface[*0/0]")
+        self.assertTrue(result.success)
+        self.assertIsInstance(result.data, dict)
 
-    def test_deep_nesting(self):
-        """Test very deep nesting."""
-        tree = OrderedDict(
-            [("a", OrderedDict([("b", OrderedDict([("c", OrderedDict([("d", "value")]))]))]))]
-        )
-        xpath = XPath()
-        result = xpath.query(tree, "/a/b/c/d")
-        assert result.success
-        assert result.data == "value"
+    def test_nonexistent_path(self):
+        """Test query for nonexistent path."""
+        result = self.parser.xpath("/nonexistent")
+        self.assertFalse(result.success)
+        self.assertIsNone(result.data)
+        self.assertEqual(result.count, 0)
+        self.assertIsNone(result.error)
 
-    def test_empty_tree(self):
-        """Test query on empty tree."""
-        tree = OrderedDict()
-        xpath = XPath()
-        result = xpath.query(tree, "/test")
-        assert not result.success
+    def test_invalid_query_format(self):
+        """Test invalid query format."""
+        result = self.parser.xpath("invalid")
+        self.assertFalse(result.success)
+        self.assertIsNotNone(result.error)
+        self.assertIn("must start with", result.error.lower())
 
-    def test_special_characters_in_keys(self):
-        """Test keys with special characters."""
-        tree = OrderedDict(
-            [
-                (
-                    "interface-vlan-100",
-                    OrderedDict(
-                        [
-                            ("ip_address", "10.0.0.1"),
-                        ]
-                    ),
-                ),
-            ]
-        )
-        xpath = XPath()
-        result = xpath.query(tree, "/interface-vlan-100/ip_address")
-        assert result.success
-        assert result.data == "10.0.0.1"
+    def test_empty_query(self):
+        """Test empty query string."""
+        result = self.parser.xpath("")
+        self.assertFalse(result.success)
+        self.assertIsNotNone(result.error)
 
-    def test_numeric_keys(self):
-        """Test numeric keys."""
-        tree = OrderedDict(
-            [
-                (
-                    "vlan",
-                    OrderedDict(
-                        [
-                            ("100", OrderedDict([("name", "DATA")])),
-                            ("200", OrderedDict([("name", "VOICE")])),
-                        ]
-                    ),
-                ),
-            ]
-        )
-        xpath = XPath()
-        result = xpath.query(tree, "/vlan/100/name")
-        assert result.success
-        assert result.data == "DATA"
-
-    def test_multiple_wildcard_levels(self):
+    def test_multiple_wildcards(self):
         """Test multiple wildcards in path."""
-        tree = OrderedDict(
-            [
-                (
-                    "level1",
-                    OrderedDict(
-                        [
-                            ("a", OrderedDict([("target", "value1")])),
-                            ("b", OrderedDict([("target", "value2")])),
-                        ]
-                    ),
-                ),
-            ]
+        result = self.parser.xpath("/interface/*/ip/*")
+        self.assertTrue(result.success)
+        self.assertGreater(result.count, 0)
+
+    def test_xpath_on_json_format(self):
+        """Test XPath on JSON format (should return error)."""
+        parser = Parser(output_format="json")
+        lines = parser.read("data/shrun.txt")
+        tree = parser.parse_tree(lines)
+        result = parser.xpath("/hostname")
+        # XPath only works with YAML format
+        self.assertFalse(result.success)
+        self.assertIsNotNone(result.error)
+        self.assertIn("yaml", result.error.lower())
+
+    def test_predicate_exact_match(self):
+        """Test predicate with exact identifier match."""
+        result1 = self.parser.xpath("/interface[FastEthernet0/0]")
+        result2 = self.parser.xpath("/interface[FastEthernet0/1]")
+        self.assertTrue(result1.success)
+        self.assertTrue(result2.success)
+        self.assertNotEqual(result1.data, result2.data)
+
+    def test_recursive_with_wildcard(self):
+        """Test recursive search combined with wildcard."""
+        result = self.parser.xpath("//ip/*")
+        self.assertTrue(result.success)
+        self.assertGreater(result.count, 0)
+
+    def test_yaml_structure_preserved(self):
+        """Test that YAML structure maintains clean format without nulls."""
+        # Verify the tree doesn't have unnecessary null values
+        self.assertIsInstance(self.tree, dict)
+        if "hostname" in self.tree:
+            # Should be string, not dict with null
+            self.assertIsInstance(self.tree["hostname"], str)
+
+    def test_two_level_split(self):
+        """Test that leaf values are split max 2 levels deep."""
+        result = self.parser.xpath("/interface[FastEthernet0/0]/ip/address")
+        # Address should be a single string, not nested dict
+        self.assertIsInstance(result.data, str)
+        self.assertIn("1.1.1.1", result.data)
+
+    def test_context_none(self):
+        """Test context='none' returns just matched values."""
+        result = self.parser.xpath("/interface/*/duplex", context="none")
+        self.assertTrue(result.success)
+        self.assertEqual(result.count, 2)
+        # Should return just the values
+        self.assertEqual(result.matches[0], "auto")
+        self.assertEqual(result.matches[1], "auto")
+
+    def test_context_partial(self):
+        """Test context='partial' includes path from wildcard match."""
+        result = self.parser.xpath("/interface/*/duplex", context="partial")
+        self.assertTrue(result.success)
+        self.assertEqual(result.count, 2)
+        # Should include interface name
+        self.assertIsInstance(result.matches[0], dict)
+        self.assertIn("FastEthernet0/0", result.matches[0])
+        self.assertEqual(result.matches[0]["FastEthernet0/0"]["duplex"], "auto")
+
+    def test_context_full(self):
+        """Test context='full' includes full tree hierarchy."""
+        result = self.parser.xpath("/interface/*/duplex", context="full")
+        self.assertTrue(result.success)
+        self.assertEqual(result.count, 2)
+        # Should include full path from root
+        self.assertIsInstance(result.matches[0], dict)
+        self.assertIn("interface", result.matches[0])
+        self.assertIn("FastEthernet0/0", result.matches[0]["interface"])
+
+    def test_context_with_predicate_wildcard(self):
+        """Test context with predicate containing wildcard."""
+        result = self.parser.xpath("/interface[FastEthernet*]/ip", context="partial")
+        self.assertTrue(result.success)
+        # Should show which FastEthernet interface
+        self.assertIsInstance(result.data, dict)
+        self.assertTrue(
+            "FastEthernet0/0" in result.data or "FastEthernet0/1" in result.data
         )
-        xpath = XPath()
-        result = xpath.query(tree, "/level1/*/target")
-        assert result.success
-        assert result.count == 2
+
+    def test_context_invalid(self):
+        """Test invalid context parameter."""
+        result = self.parser.xpath("/hostname", context="invalid")
+        self.assertFalse(result.success)
+        self.assertIsNotNone(result.error)
+        self.assertIn("Invalid context", result.error)
+
+    def test_paths_tracking(self):
+        """Test that paths are tracked in results."""
+        result = self.parser.xpath("/interface/*/duplex")
+        self.assertTrue(result.success)
+        self.assertEqual(len(result.paths), result.count)
+        # Paths should contain path components
+        for path in result.paths:
+            self.assertIsInstance(path, list)
+            self.assertIn("interface", path)
+            self.assertIn("duplex", path)
+
+    def test_context_recursive_search(self):
+        """Test context with recursive search."""
+        result = self.parser.xpath("//duplex", context="partial")
+        self.assertTrue(result.success)
+        self.assertGreater(result.count, 0)
+        # With context, should show parent structure
+        self.assertIsInstance(result.matches[0], dict)
+
+
+if __name__ == "__main__":
+    unittest.main()
