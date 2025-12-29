@@ -131,15 +131,25 @@ class TestXPath(unittest.TestCase):
         self.assertGreater(result.count, 0)
 
     def test_xpath_on_json_format(self):
-        """Test XPath on JSON format (should return error)."""
+        """Test XPath on JSON format works (modern hierarchical format)."""
         parser = Parser(output_format="json")
         lines = parser.read("data/shrun.txt")
         parser.parse_tree(lines)
         result = parser.xpath("/hostname")
-        # XPath only works with YAML format
+        # XPath works with modern json format
+        self.assertTrue(result.success)
+        self.assertEqual(result.data, "R1")
+
+    def test_xpath_on_legacy_format(self):
+        """Test XPath on legacy format (should return error)."""
+        parser = Parser()  # Defaults to legacy
+        lines = parser.read("data/shrun.txt")
+        parser.parse_tree(lines)
+        result = parser.xpath("/hostname")
+        # XPath doesn't work with legacy format
         self.assertFalse(result.success)
         self.assertIsNotNone(result.error)
-        self.assertIn("yaml", result.error.lower())
+        self.assertIn("modern format", result.error.lower())
 
     def test_predicate_exact_match(self):
         """Test predicate with exact identifier match."""

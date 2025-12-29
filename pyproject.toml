@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "shconfparser"
-version = "3.0.0"
+version = "3.1.0"
 description = "Network configuration parser that translates show command outputs into structured data"
 readme = "README.md"
 requires-python = ">=3.9"

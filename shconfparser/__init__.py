@@ -41,7 +41,7 @@ from .table_parser import TableParser
 from .tree_parser import TreeParser
 from .xpath import XPath
 
-__version__ = "3.0.0"
+__version__ = "3.1.0"
 __author__ = "Kiran Kumar Kotari"
 __email__ = "kirankotari@live.com"
 

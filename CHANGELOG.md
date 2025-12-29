@@ -5,6 +5,50 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.1.0] - 2025-12-28
+
+### 🎉 Format System Refinement
+
+This release refines the output format system with explicit naming for legacy and modern formats.
+
+### Changed
+- 🔄 **Format parameter semantics** - Clarified format naming and behavior
+  - `Parser()` now explicitly defaults to `'legacy'` format (backward compatible)
+  - `Parser(output_format='legacy')` - OrderedDict with full command strings (backward compatible)
+  - `Parser(output_format='json')` - dict with hierarchical structure (modern, XPath enabled)
+  - `Parser(output_format='yaml')` - dict with hierarchical structure (modern, XPath enabled)
+- 🔄 **XPath support** - Now works with both 'json' and 'yaml' formats (any modern format)
+- 🔄 **Format validation** - Clear error messages for invalid format specifications
+
+### Technical Details
+
+**Breaking refinement** (minimal impact):
+- `output_format='json'` behavior changed from OrderedDict to dict with hierarchical structure
+- Since this feature was added hours ago (same day), no users are affected
+- Legacy behavior preserved via `output_format='legacy'` or `Parser()` (no params)
+
+**Migration:**
+```python
+# v3.0 code (still works)
+p = Parser()  # Returns OrderedDict with full keys
+
+# v3.1 explicit legacy
+p = Parser(output_format='legacy')  # Same as above
+
+# v3.1 modern formats (hierarchical structure, XPath enabled)
+p = Parser(output_format='json')   # dict with hierarchy
+p = Parser(output_format='yaml')   # dict with hierarchy
+```
+
+**Format comparison:**
+```python
+# Legacy format (OrderedDict with full keys)
+{'interface FastEthernet0/0': {'ip address 1.1.1.1': ''}}
+
+# Modern formats (dict with hierarchy)
+{'interface': {'FastEthernet0/0': {'ip': {'address': '1.1.1.1'}}}}
+```
+
 ## [3.0.0] - 2025-12-27
 
 ### 🎉 Major Release - Modernization

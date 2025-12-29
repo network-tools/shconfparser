@@ -50,21 +50,32 @@ class Parser:
         self,
         log_level: int = logging.INFO,
         log_format: Optional[str] = None,
-        output_format: str = "json",
+        output_format: Optional[str] = None,
     ) -> None:
         """Initialize the Parser.
 
         Args:
             log_level: Logging level (default: INFO)
             log_format: Custom log format string
-            output_format: Default output format for parse_tree ('json' or 'yaml', default: 'json')
+            output_format: Output structure format
+                - None or 'legacy' (default): OrderedDict with full command strings
+                  Example: {'interface FastEthernet0/0': {'ip address 1.1.1.1': ''}}
+                  For backward compatibility. No XPath support.
+
+                - 'json': Hierarchical dict structure
+                  Example: {'interface': {'FastEthernet0/0': {'ip': {'address': '1.1.1.1'}}}}
+                  XPath support enabled. Clean programmatic access.
+
+                - 'yaml': Hierarchical dict structure (same as json)
+                  Example: {'interface': {'FastEthernet0/0': {'ip': {'address': '1.1.1.1'}}}}
+                  XPath support enabled. YAML-friendly output.
         """
         # State for backward compatibility
         self.data: TreeData = OrderedDict()
         self.table: TableData = []
 
-        # Output format configuration
-        self.output_format: str = output_format
+        # Output format configuration (None defaults to 'legacy' for backward compatibility)
+        self.output_format: str = output_format if output_format is not None else "legacy"
 
         # Logging
         self.format: Optional[str] = log_format
@@ -104,16 +115,19 @@ class Parser:
 
         Args:
             lines: Configuration lines with indentation
-            format: Output format ('json' or 'yaml'). If None, uses self.output_format
+            format: Output format ('legacy', 'json', or 'yaml'). If None, uses self.output_format
 
         Returns:
-            Nested OrderedDict (json format) or dict (yaml format) representing configuration hierarchy
+            - 'legacy': OrderedDict with full command strings as keys
+            - 'json' or 'yaml': dict with hierarchical structure
 
         Example:
-            >>> parser = Parser()
+            >>> parser = Parser()  # Defaults to 'legacy'
             >>> config = ['interface Ethernet0', '  ip address 1.1.1.1']
-            >>> tree = parser.parse_tree(config)  # Returns OrderedDict (JSON)
-            >>> tree_yaml = parser.parse_tree(config, format='yaml')  # Returns dict (YAML-friendly)
+            >>> tree = parser.parse_tree(config)  # Returns OrderedDict with full keys
+
+            >>> parser = Parser(output_format='json')
+            >>> tree = parser.parse_tree(config)  # Returns dict with hierarchy
         """
         # Parse to OrderedDict first
         ordered_tree = self.tree_parser.parse_tree(lines)
@@ -121,13 +135,23 @@ class Parser:
         # Transform based on format
         output_format = format if format is not None else self.output_format
 
-        if output_format == "yaml":
-            yaml_tree = self._tree_to_yaml_structure(ordered_tree)
-            self.data = yaml_tree  # type: ignore[assignment]  # Store YAML format for xpath
-            return yaml_tree
-        else:
-            self.data = ordered_tree  # Store JSON format
+        # Validate format
+        valid_formats = {"legacy", "json", "yaml"}
+        if output_format not in valid_formats:
+            raise ValueError(
+                f"Invalid output_format '{output_format}'. "
+                f"Must be one of: {', '.join(sorted(valid_formats))}"
+            )
+
+        if output_format == "legacy":
+            # Legacy format: OrderedDict with full command strings
+            self.data = ordered_tree
             return ordered_tree
+        else:
+            # Modern formats (json/yaml): dict with hierarchical structure
+            hierarchical_tree = self._tree_to_yaml_structure(ordered_tree)
+            self.data = hierarchical_tree  # type: ignore[assignment]
+            return hierarchical_tree
 
     def parse_tree_safe(self, lines: List[str]) -> TreeParseResult:
         """Parse tree structure with structured result.
@@ -398,11 +422,14 @@ class Parser:
                 query=query,
             )
 
-        # XPath only works with YAML format (dict, not OrderedDict)
-        if self.output_format != "yaml":
+        # XPath only works with modern formats (json/yaml)
+        if self.output_format not in ("json", "yaml"):
             return XPathResult(
                 success=False,
-                error=f"XPath queries only work with output_format='yaml', current format is '{self.output_format}'",
+                error=(
+                    f"XPath queries require modern format. Use output_format='json' or 'yaml'. "
+                    f"Current format is '{self.output_format}' (OrderedDict with full command strings)."
+                ),
                 query=query,
             )
 

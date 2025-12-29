@@ -28,16 +28,20 @@ XPath queries provide a powerful way to search and extract data from network con
 
 ### Requirements
 
-**XPath queries only work with YAML format:**
+**XPath queries work with modern formats (json or yaml):**
 
 ```python
-# ✅ Correct - YAML format required
-p = Parser(output_format='yaml')
+# ✅ Correct - JSON format (hierarchical dict)
+p = Parser(output_format='json')
 tree = p.parse_tree(data)
 result = p.xpath('/hostname')
 
-# ❌ Wrong - JSON format not supported
-p = Parser(output_format='json')
+# ✅ Correct - YAML format (hierarchical dict, same structure as json)
+p = Parser(output_format='yaml')
+result = p.xpath('/hostname')
+
+# ❌ Wrong - Legacy format not supported
+p = Parser()  # Defaults to 'legacy'
 result = p.xpath('/hostname')  # Returns error
 ```
 
@@ -46,8 +50,8 @@ result = p.xpath('/hostname')  # Returns error
 ```python
 from shconfparser import Parser
 
-# Initialize parser with YAML format
-p = Parser(output_format='yaml')
+# Initialize parser with modern format (json or yaml)
+p = Parser(output_format='json')  # or 'yaml' - both work
 data = p.read('running_config.txt')
 tree = p.parse_tree(data)
 
@@ -435,7 +439,7 @@ p = Parser(output_format='json')
 result = p.xpath('/hostname')  # Returns error
 ```
 
-**Solution:** Use `output_format='yaml'`
+**Solution:** Use `output_format='json'` or `output_format='yaml'` (modern formats)
 
 ### 2. No Attribute Selection
 
@@ -488,10 +492,10 @@ result = p.xpath('hostname')  # Missing leading /
 result = p.xpath('/hostname', context='invalid')
 # result.error: "Invalid context 'invalid'. Must be 'none', 'partial', or 'full'"
 
-# JSON format error
-p = Parser(output_format='json')
+# Legacy format error
+p = Parser()  # Defaults to 'legacy'
 result = p.xpath('/hostname')
-# result.error: "XPath queries only work with output_format='yaml'..."
+# result.error: "XPath requires modern format (json/yaml)..."
 ```
 
 ## Performance Tips
