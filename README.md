@@ -28,13 +28,16 @@ shconfparser is a vendor independent library where you can parse the following f
 - Table structure *`i.e. show ip interface`*
 - Data *`i.e. show version`*
 
-YAML Format Output
+Modern Format (JSON/YAML) - Hierarchical Structure
 
-![show run to YAML structure](https://raw.githubusercontent.com/kirankotari/shconfparser/master/asserts/img/sh_run_yaml.png)
+![show run to modern YAML format structure](https://raw.githubusercontent.com/kirankotari/shconfparser/master/asserts/img/sh_run_yaml.png)
+<br/>
+<br/>
+![show run to modern JSON format structure](https://raw.githubusercontent.com/kirankotari/shconfparser/master/asserts/img/sh_run_json.png)
 
-Tree Structure
+Legacy Format - OrderedDict with Full Keys
 
-![show run to tree structure](https://raw.githubusercontent.com/kirankotari/shconfparser/master/asserts/img/sh_run.png)
+![show run to legacy format structure](https://raw.githubusercontent.com/kirankotari/shconfparser/master/asserts/img/sh_run.png)
 
 Table Structure
 
