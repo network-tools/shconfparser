@@ -28,13 +28,16 @@ shconfparser is a vendor independent library where you can parse the following f
 - Table structure *`i.e. show ip interface`*
 - Data *`i.e. show version`*
 
-YAML Format Output
+Modern Format (JSON/YAML) - Hierarchical Structure
 
-![show run to YAML structure](https://raw.githubusercontent.com/kirankotari/shconfparser/master/asserts/img/sh_run_yaml.png)
+![show run to modern YAML format structure](https://raw.githubusercontent.com/kirankotari/shconfparser/master/asserts/img/sh_run_yaml.png)
+<br/>
+<br/>
+![show run to modern JSON format structure](https://raw.githubusercontent.com/kirankotari/shconfparser/master/asserts/img/sh_run_json.png)
 
-Tree Structure
+Legacy Format - OrderedDict with Full Keys
 
-![show run to tree structure](https://raw.githubusercontent.com/kirankotari/shconfparser/master/asserts/img/sh_run.png)
+![show run to legacy format structure](https://raw.githubusercontent.com/kirankotari/shconfparser/master/asserts/img/sh_run.png)
 
 Table Structure
 
@@ -67,12 +70,12 @@ uv pip install shconfparser
 
 ### Basic Usage
 
-**Single show command with YAML format (recommended):**
+**Modern format (recommended - hierarchical structure with XPath):**
 ```python
 from shconfparser.parser import Parser
 
-# Use YAML format for cleaner output and XPath support
-p = Parser(output_format='yaml')
+# Use modern format for cleaner output and XPath support
+p = Parser(output_format='json')  # or 'yaml'
 data = p.read('running_config.txt')
 
 # Parse directly (no split needed for single show running command)
@@ -85,13 +88,16 @@ print(result.data)  # 'R1'
 ```
 
 <details>
-<summary>Alternative: JSON format (backward compatible)</summary>
+<summary>Alternative: Legacy format (backward compatible)</summary>
 
 ```python
-p = Parser()  # Default is JSON format (OrderedDict)
+p = Parser()  # Defaults to 'legacy' format
+# or explicitly: Parser(output_format='legacy')
 data = p.read('running_config.txt')
 tree = p.parse_tree(data)
 print(p.dump(tree, indent=4))
+# Returns OrderedDict with full command strings as keys
+# Example: {'interface FastEthernet0/0': {...}}
 ```
 </details>
 
@@ -99,7 +105,7 @@ print(p.dump(tree, indent=4))
 ```python
 from shconfparser.parser import Parser
 
-p = Parser(output_format='yaml')  # YAML format recommended
+p = Parser(output_format='json')  # Modern format recommended
 data = p.read('multiple_commands.txt')  # Contains multiple show outputs
 data = p.split(data)  # Split into separate commands
 data.keys()
@@ -216,40 +222,39 @@ print(match)
 # {'Device ID': 'R2', 'Local Intrfce': 'Fas 0/0', ...}
 ```
 
-### Output Format Selection (New in 3.0!)
+### Output Format Selection
 
-Parse configurations to JSON (OrderedDict) or YAML-friendly dict structures:
+Parse configurations in legacy (OrderedDict) or modern (dict) hierarchical structures:
 
 ```python
 from shconfparser.parser import Parser
 
-# Default: JSON format (OrderedDict - backward compatible)
-p = Parser()
+# Legacy format (backward compatible - OrderedDict with full keys)
+p = Parser()  # Defaults to 'legacy'
+# or explicitly: Parser(output_format='legacy')
 data = p.read('running_config.txt')
 tree = p.parse_tree(data)  # Returns OrderedDict
 print(type(tree))  # <class 'collections.OrderedDict'>
+# Example: {'interface FastEthernet0/0': {'ip address 1.1.1.1': ''}}
 
-# YAML format: cleaner hierarchical structure
-p = Parser(output_format='yaml')
+# Modern formats: JSON or YAML (hierarchical dict structure)
+p = Parser(output_format='json')  # Hierarchical dict
+# or: Parser(output_format='yaml')  # Same structure, different name
 data = p.read('running_config.txt')
-tree_yaml = p.parse_tree(data)  # Returns dict with nested structure
-print(type(tree_yaml))  # <class 'dict'>
+tree = p.parse_tree(data)  # Returns dict
+print(type(tree))  # <class 'dict'>
+# Example: {'interface': {'FastEthernet0/0': {'ip': {'address': '1.1.1.1'}}}}
 
 # Override format per call
-p = Parser()  # Default is JSON
-tree_json = p.parse_tree(data)  # OrderedDict
-tree_yaml = p.parse_tree(data, format='yaml')  # dict
-
-# YAML structure example:
-# Input: "interface FastEthernet0/0" with nested config
-# JSON: {"interface FastEthernet0/0": {...}}
-# YAML: {"interface": {"FastEthernet0/0": {...}}}
+p = Parser()  # Legacy by default
+tree_legacy = p.parse_tree(data)  # OrderedDict
+tree_json = p.parse_tree(data, format='json')  # dict
 ```
 
 **Format Comparison:**
 
 ```python
-# JSON format (default) - preserves exact CLI structure
+# Legacy format - preserves exact CLI structure (OrderedDict)
 {
     "interface FastEthernet0/0": {
         "ip address 1.1.1.1 255.255.255.0": "",
@@ -257,7 +262,7 @@ tree_yaml = p.parse_tree(data, format='yaml')  # dict
     }
 }
 
-# YAML format - hierarchical and human-readable
+# Modern formats (json/yaml) - hierarchical and programmatic (dict)
 {
     "interface": {
         "FastEthernet0/0": {
@@ -270,12 +275,12 @@ tree_yaml = p.parse_tree(data, format='yaml')  # dict
 }
 ```
 
-**Benefits of YAML format:**
+**Benefits of modern formats (json/yaml):**
 - Cleaner hierarchy for nested configurations
 - Better for programmatic access
-- Easier to convert to actual YAML files
+- XPath query support
+- Easier to convert to actual JSON/YAML files
 - Natural structure for complex configs
-- Required for XPath queries
 
 ### XPath Queries (New in 3.0!)
 
