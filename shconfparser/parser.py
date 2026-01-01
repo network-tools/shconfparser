@@ -349,9 +349,17 @@ class Parser:
                 for part in path_parts:
                     if part not in current:
                         current[part] = {}
+                    elif not isinstance(current[part], dict):
+                        # Key exists as non-dict, convert to dict
+                        current[part] = {}
                     current = current[part]
 
                 # Add the identifier with its nested value
+                # Check if identifier already exists and handle conflicts
+                if identifier in current and not isinstance(current[identifier], dict):
+                    # Identifier exists as non-dict, we'll overwrite it
+                    # This handles cases where a leaf value conflicts with a container
+                    pass
                 current[identifier] = self._tree_to_yaml_structure(value)
 
             else:
@@ -360,6 +368,7 @@ class Parser:
                     # Two words: first is key, second is value
                     # "hostname R1" → hostname: R1
                     # "duplex auto" → duplex: auto
+                    # Overwrite any existing value (dict or otherwise)
                     result[parts[0]] = parts[1]
 
                 elif len(parts) > 2:
